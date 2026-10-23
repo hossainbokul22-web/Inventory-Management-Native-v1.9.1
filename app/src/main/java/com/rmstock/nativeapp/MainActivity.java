@@ -148,6 +148,7 @@ public class MainActivity extends Activity {
  private void showDashboard(){
     clear("Dashboard");
     try{
+        LinearLayout qa=row(); Button scanB=Ui.primary(this,"📷  Scan voucher (AI)"); scanB.setTextSize(14); scanB.setOnClickListener(v->showAI()); qa.addView(scanB,Ui.lp(this,0,dp(52),1,0,0,6,8)); Button sendB=Ui.primary(this,"📤  Send report to boss"); sendB.setTextSize(14); sendB.setOnClickListener(v->startActivity(new Intent(this,SendActivity.class))); qa.addView(sendB,Ui.lp(this,0,dp(52),1,6,0,0,8)); add(qa);
         TextView live=new TextView(this); live.setText("LIVE DATA  •  Today’s RM Receive, Mixing-2 Use, Batch and Closing Stock");
         live.setTextSize(12); live.setTextColor(Ui.MUTED); live.setPadding(dp(2),0,dp(2),dp(10)); add(live);
 
