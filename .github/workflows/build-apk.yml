@@ -1,0 +1,71 @@
+name: Build Bativu APK
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Android SDK 34
+        run: |
+          SDKMANAGER="$(find "$ANDROID_HOME" -name sdkmanager -type f 2>/dev/null | head -1)"
+
+          if [ -z "$SDKMANAGER" ]; then
+            echo "ERROR: sdkmanager not found"
+            echo "ANDROID_HOME=$ANDROID_HOME"
+            exit 1
+          fi
+
+          echo "Using sdkmanager: $SDKMANAGER"
+
+          yes | "$SDKMANAGER" --licenses || true
+
+          "$SDKMANAGER" \
+            "platform-tools" \
+            "platforms;android-34" \
+            "build-tools;34.0.0"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.2'
+
+      - name: Run calculation tests
+        run: |
+          mkdir -p /tmp/t
+          javac -d /tmp/t app/src/main/java/com/rmstock/nativeapp/PlanLogic.java tools/PlanLogicTest.java
+          java -cp /tmp/t com.rmstock.nativeapp.PlanLogicTest
+      - name: Voice command understanding tests
+        run: |
+          mkdir -p /tmp/v
+          javac -encoding UTF-8 -d /tmp/v app/src/main/java/com/rmstock/nativeapp/VoiceParse.java app/src/main/java/com/rmstock/nativeapp/PlanLogic.java tools/VoiceParseTest.java
+          java -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -cp /tmp/v com.rmstock.nativeapp.VoiceParseTest
+      - name: Daily PM calculation matches the web version (42 reports)
+        run: |
+          mkdir -p /tmp/e
+          javac -encoding UTF-8 -d /tmp/e app/src/main/java/com/rmstock/nativeapp/PmModel.java tools/pm_equivalence/PmModelCheck.java
+          java -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -cp /tmp/e com.rmstock.nativeapp.PmModelCheck tools/pm_equivalence/data.txt > /tmp/pm.out
+          diff /tmp/pm.out tools/pm_equivalence/expected.out && echo "PM numbers identical"
+
+      - name: Build debug APK
+        run: gradle :app:assembleDebug --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: rm-stock-native-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk

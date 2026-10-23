@@ -1,0 +1,32 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.rmstock.nativeapp'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.rmstock.nativeapp'
+        minSdk 23
+        targetSdk 34
+        versionCode 16
+        versionName '1.9.1'
+        // phones only: arm64 + 32-bit arm. Dropping x86 (emulators) makes the APK much smaller and installs faster.
+        ndk { abiFilters 'arm64-v8a', 'armeabi-v7a' }
+    }
+    packaging {
+        jniLibs { useLegacyPackaging = false }   // native libraries stay uncompressed in the APK: faster install and start
+    }
+}
+
+
+configurations.configureEach {
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'cz.adaptech.tesseract4android:tesseract4android:4.8.0'
+}

@@ -1,0 +1,1635 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1F4E78">
+<title>Daily PM Report</title>
+<style>
+:root{
+  --bg:#f4f6f9; --card:#ffffff; --ink:#1b2430; --muted:#5d6b7c; --line:#d9dfe7;
+  --brand:#1F4E78; --brand-ink:#ffffff; --accent:#fff2cc; --ok:#1d7a46; --bad:#b3261e; --head:#e8eef5;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme=light]){--bg:#10161d; --card:#18212b; --ink:#e7edf3; --muted:#9aa8b8; --line:#2b3948; --brand:#4f8fc9; --brand-ink:#0b1722; --accent:#3a3320; --ok:#53c585; --bad:#ff8a80; --head:#1f2c3a}
+}
+:root[data-theme=dark]{--bg:#10161d; --card:#18212b; --ink:#e7edf3; --muted:#9aa8b8; --line:#2b3948; --brand:#4f8fc9; --brand-ink:#0b1722; --accent:#3a3320; --ok:#53c585; --bad:#ff8a80; --head:#1f2c3a}
+html.embed header{display:none}
+html.embed nav{top:0}
+*{box-sizing:border-box}
+
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,"Segoe UI",Roboto,Arial,sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--brand);color:var(--brand-ink);padding:10px 14px;padding-top:max(10px,env(safe-area-inset-top));display:flex;align-items:center;justify-content:space-between;gap:10px}
+header h1{font-size:17px;margin:0;font-weight:700}
+#status{font-size:12px;opacity:.9;white-space:nowrap}
+nav{position:sticky;top:46px;z-index:4;background:var(--card);border-bottom:1px solid var(--line);display:flex;overflow-x:auto}
+nav button{flex:1 0 auto;min-height:46px;padding:0 16px;border:0;background:none;color:var(--muted);font:inherit;font-weight:600;border-bottom:3px solid transparent;cursor:pointer}
+nav button[aria-selected=true]{color:var(--brand);border-bottom-color:var(--brand)}
+main{max-width:1100px;margin:0 auto;padding:14px;padding-bottom:max(40px,env(safe-area-inset-bottom))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+h2{font-size:16px;margin:0 0 10px}
+label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+input,select,textarea{width:100%;min-height:46px;padding:9px 11px;font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:9px}
+input.in,select.in,textarea.in{background:var(--accent)}
+input[disabled]{opacity:.65}
+.row{display:grid;gap:10px;grid-template-columns:1fr 1fr}
+@media(max-width:480px){.row.stack{grid-template-columns:1fr}}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{min-height:44px;padding:0 16px;border-radius:22px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-weight:600;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.btn{min-height:48px;padding:0 20px;border-radius:10px;border:0;background:var(--brand);color:var(--brand-ink);font:inherit;font-weight:700;cursor:pointer}
+.btn.sec{background:var(--head);color:var(--ink);border:1px solid var(--line)}
+.btn.danger{background:var(--bad);color:#fff}
+.btn.sm{min-height:36px;padding:0 12px;font-size:14px}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.name{margin-top:6px;font-weight:600;color:var(--brand);min-height:1.4em}
+.msg{padding:10px 12px;border-radius:9px;margin-bottom:12px;font-size:14px}
+.msg.err{background:color-mix(in srgb,var(--bad) 15%,var(--card));border:1px solid var(--bad)}
+.msg.ok{background:color-mix(in srgb,var(--ok) 15%,var(--card));border:1px solid var(--ok)}
+.msg.warn{background:var(--accent);border:1px solid var(--line)}
+.tw{overflow:auto;border:1px solid var(--line);border-radius:10px;max-height:70vh;background:var(--card)}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:14px}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:right}
+th{position:sticky;top:0;background:var(--head);z-index:2;font-weight:700;white-space:normal;vertical-align:bottom}
+td.l,th.l{text-align:left}
+.sticky1{position:sticky;left:0;background:var(--card);z-index:1;white-space:normal;min-width:128px;max-width:160px;font-size:13px;line-height:1.3;border-right:1px solid var(--line);text-align:left}
+th.sticky1{background:var(--head);z-index:3}
+tr.tot td,tr.pre td{font-weight:700;background:var(--head)}
+td.neg{color:var(--bad);font-weight:700}
+.muted{color:var(--muted);font-size:13px}
+.list .it{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.list .it:last-child{border-bottom:0}
+.list .t{font-weight:600}
+.pill{display:inline-block;padding:1px 8px;border-radius:10px;background:var(--head);font-size:12px;margin-left:6px}
+td input{min-height:36px;padding:4px 8px;width:110px;text-align:right}
+th.c{text-align:center}
+td.itemname{white-space:normal;min-width:130px;max-width:190px;font-weight:600;vertical-align:top}
+table.prod td input{width:88px}
+table.prod td input.rt{width:96px;text-align:left}
+input.ov{background:#ffd966;font-weight:700}
+.mph{font-size:14px;margin:16px 0 6px}
+table.mp td input{width:80px}
+table.mp td input.mpname{width:150px;text-align:left}
+table.mp th input.mphead{width:80px;text-align:right;font-weight:700;background:transparent}
+.addbox{margin-top:12px;border:1.5px dashed var(--brand);border-radius:14px;background:color-mix(in srgb,var(--brand) 6%,transparent)}
+.addbox[open]{border-style:solid}
+.addsum{display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;min-height:56px}
+.addsum::before,details[open]>.addsum::before{content:none!important}
+.addic{flex:none;width:38px;height:38px;border-radius:50%;background:var(--brand);color:var(--brand-ink);display:flex;align-items:center;justify-content:center;font-size:26px;line-height:1;font-weight:400}
+.addbox[open] .addic{transform:rotate(45deg)}
+.addtx{flex:1;display:flex;flex-direction:column;min-width:0}
+.addtx b{color:var(--brand);font-size:16px}
+.addtx small{color:var(--muted);font-size:13px;line-height:1.3;margin-top:2px}
+.addch{flex:none;width:11px;height:11px;border-right:3px solid var(--brand);border-bottom:3px solid var(--brand);transform:rotate(-45deg);margin:0 6px;transition:transform .15s}
+.addbox[open] .addch{transform:rotate(45deg)}
+.pb2{display:flex;gap:8px;flex:none}.pb2 .btn{width:auto!important;white-space:nowrap}
+.addbody{padding:0 14px 14px}
+.addbody .btn{width:100%}
+.addbody .btns .btn.sm{width:auto}
+.pbar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:12px;color:var(--muted);font-size:14px}
+.howto{margin-top:10px;font-size:14px}
+.howto>summary{color:var(--muted)!important;cursor:pointer;min-height:32px;display:flex;align-items:center}
+.howto>summary::before{content:'\24D8\00a0\00a0'!important;font-size:16px}
+.howto ul{margin:4px 0 0;padding-left:20px;color:var(--muted)}.howto li{margin:3px 0}
+.wn{display:flex;gap:10px;align-items:flex-start;margin-top:10px;padding:10px 12px;border-radius:12px;background:var(--accent);border:1px solid color-mix(in srgb,#e0a800 45%,transparent)}
+.wn b{display:block;font-size:14px}.wn small{display:block;color:var(--muted);font-size:13px;line-height:1.35;margin-top:2px}
+.wi{flex:none;width:22px;height:22px;border-radius:50%;background:#e0a800;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px}
+.pchecks{max-height:230px;overflow:auto;border:1px solid var(--line);border-radius:10px;margin-top:10px}
+.pchk{display:flex;align-items:center;gap:10px;margin:0;padding:10px 12px;border-bottom:1px solid var(--line);color:var(--ink);font-size:15px;cursor:pointer}
+.pchk:last-child{border-bottom:0}
+.pchk input{width:22px;height:22px;min-height:0;flex:none}
+details>summary{list-style:none;color:var(--brand)}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:'\25B8\00a0';margin-right:4px}
+details[open]>summary::before{content:'\25BE\00a0'}
+.rhead{margin:0 0 10px}
+.rhead .co{font-weight:700;font-size:15px}
+.rhead .rt{font-weight:700;color:var(--brand)}
+.rhead .rs{color:var(--muted);font-size:13px}
+.sign{display:none}
+@media print{
+  :root{--bg:#fff;--card:#fff;--ink:#000;--muted:#333;--line:#999;--brand:#1F4E78;--head:#e8eef5;--bad:#b3261e}
+  @page{size:A4 landscape;margin:9mm}
+  html,body{background:#fff;color:#000;font-size:10px}
+  header,nav,.noprint{display:none!important}
+  main{max-width:none;padding:0}
+  .tw{border:0;max-height:none;overflow:visible;border-radius:0}
+  table{font-size:7.5px;width:100%}
+  table.wide{table-layout:fixed;font-size:6.5px}
+  table.wide td:nth-child(1),table.wide th:nth-child(1){width:3.5%}
+  table.wide td:nth-child(2),table.wide th:nth-child(2){width:17%}
+  table.wide td:last-child,table.wide th:last-child{width:4.5%}
+  table.wide td{overflow:hidden}
+  table{line-height:1.05}
+  th,td{padding:.6px 3px;border:.5px solid #888;white-space:normal}
+  .sticky1{position:static;max-width:none;min-width:0;font-size:inherit;line-height:inherit;border-right:.5px solid #888}
+  td{white-space:nowrap}
+  th{position:static;background:var(--head)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  tr.tot td,tr.pre td{background:var(--head)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  tr{page-break-inside:avoid}
+  thead{display:table-header-group}
+  td.itemname{white-space:normal;font-weight:700}
+  td input{border:0!important;background:none!important;padding:0;min-height:0;width:100%!important;font:inherit;text-align:right;color:#000}
+  table.prod td input.rt{text-align:left}
+  table.prod{font-size:7.5px}
+  .mpwrap{page-break-inside:avoid;margin-top:8px}
+  .mph{margin:6px 0 3px;font-size:9px}
+  .mpwrap .tw{max-width:300px!important}
+  .rhead .co{font-size:13px}
+  .sign{display:flex;gap:30px;margin-top:14px;page-break-inside:avoid}
+  .sign div{flex:1;border-top:1px solid #000;padding-top:3px;font-size:9px;text-align:center}
+}
+nav button{--tc:var(--brand);--ic:'\25CF'}
+nav button::before{content:var(--ic);color:var(--tc);margin-right:7px;font-size:15px}
+nav button[data-tab=entry]{--tc:#1d9a5b;--ic:'\FF0B'}
+nav button[data-tab=daily]{--tc:#2457a6;--ic:'\25A4'}
+nav button[data-tab=monthly]{--tc:#7b3fc4;--ic:'\25A6'}
+nav button[data-tab=production]{--tc:#e07b00;--ic:'\25A3'}
+nav button[data-tab=master]{--tc:#0f8a8a;--ic:'\25C6'}
+nav button[data-tab=settings]{--tc:#546e7a;--ic:'\2699'}
+nav button[data-tab=backup]{--tc:#c2185b;--ic:'\21E9'}
+nav button[aria-selected=true]{color:var(--tc);border-bottom-color:var(--tc);background:color-mix(in srgb,var(--tc) 10%,transparent)}
+</style>
+<script>try{if(window.AndroidPM){document.documentElement.classList.add('embed');document.documentElement.dataset.theme=AndroidPM.isDark()?'dark':'light';}}catch(e){}</script>
+</head>
+<body>
+<header><h1 id="appTitle">Daily PM Report</h1><span id="status"></span></header>
+<nav id="tabs" role="tablist"></nav>
+<main id="app"></main>
+
+<script>
+const SEED = {
+"items": [
+{
+"code": 101,
+"name": "7.5×8.5 HDPE",
+"open": 3.1,
+"uom": "kg"
+},
+{
+"code": 102,
+"name": "9×12 HDPE",
+"open": 12.65,
+"uom": "kg"
+},
+{
+"code": 103,
+"name": "16×20 HDPE",
+"open": 38.5,
+"uom": "kg"
+},
+{
+"code": 104,
+"name": "27×48 HDPE",
+"open": 4.1,
+"uom": "kg"
+},
+{
+"code": 105,
+"name": "8.5×9.5 HDPE",
+"open": 8.2,
+"uom": "kg"
+},
+{
+"code": 106,
+"name": "Ovi. Special toast 180 gm foil",
+"open": 11.3,
+"uom": "kg"
+},
+{
+"code": 107,
+"name": "Ovi. Sweet toast 180 gm Foil",
+"open": 2.8,
+"uom": "kg"
+},
+{
+"code": 108,
+"name": "Ovi. Special toast 250/300/350 gm foil",
+"open": 2.4,
+"uom": "kg"
+},
+{
+"code": 109,
+"name": "Ovi. Sweet toast 250/300/350 gm foil",
+"open": 0.63,
+"uom": "kg"
+},
+{
+"code": 110,
+"name": "Ovi. Toast 180gm× 24 pcs common ctn (local)",
+"open": 59.0,
+"uom": "kg"
+},
+{
+"code": 111,
+"name": "Ovi. Toast 250 gm× 12 pcs common ctn(local)",
+"open": 79.0,
+"uom": "kg"
+},
+{
+"code": 112,
+"name": "ovi. sweet toast 16 gm Roll foil",
+"open": 56.6,
+"uom": "kg"
+},
+{
+"code": 113,
+"name": "B/c 400gm jar",
+"open": 0.0,
+"uom": "kg"
+},
+{
+"code": 114,
+"name": "B/c 800gm jar",
+"open": 0.0,
+"uom": "kg"
+},
+{
+"code": 115,
+"name": "Cutting paper",
+"open": 62.0,
+"uom": "kg"
+},
+{
+"code": 116,
+"name": "Cutting paper (Alu)",
+"open": 0.0,
+"uom": "kg"
+},
+{
+"code": 117,
+"name": "o' poly",
+"open": 16.0,
+"uom": "kg"
+},
+{
+"code": 118,
+"name": "B/c 400gm jar sealing paper",
+"open": 2.0,
+"uom": "kg"
+},
+{
+"code": 119,
+"name": "B/c 800gm jar sealing paper",
+"open": 1.1,
+"uom": "kg"
+},
+{
+"code": 120,
+"name": "Gumkin Atta",
+"open": 10.5,
+"uom": "kg"
+},
+{
+"code": 121,
+"name": "Ovi. B/c 400gm label",
+"open": 0.0,
+"uom": "kg"
+},
+{
+"code": 122,
+"name": "Ovi. B/c 800gm label",
+"open": 0.0,
+"uom": "kg"
+},
+{
+"code": 123,
+"name": "Ovi. B/c 400gm common ctn(local)",
+"open": 50.0,
+"uom": "kg"
+},
+{
+"code": 124,
+"name": "Ovi. B/c 800gm common ctn(local)",
+"open": 0.0,
+"uom": "kg"
+},
+{
+"code": 125,
+"name": "D/c 300/350 gm Tray",
+"open": 691.0,
+"uom": "kg"
+},
+{
+"code": 126,
+"name": "D/c 300/350 gm Alu pouch",
+"open": 13.0,
+"uom": "kg"
+},
+{
+"code": 127,
+"name": "Ovi. D/c 300/350 gm ATC Box",
+"open": 88.0,
+"uom": "kg"
+},
+{
+"code": 128,
+"name": "Glu stick",
+"open": 38.0,
+"uom": "kg"
+},
+{
+"code": 129,
+"name": "Ovi. D/c 300 gm ctn (local)",
+"open": 0.0,
+"uom": "kg"
+},
+{
+"code": 130,
+"name": "Ovi. milk cake 10 gm Roll foil",
+"open": 0.0,
+"uom": "kg"
+},
+{
+"code": 131,
+"name": "Ovi.Milk cake 10gm×72 pcs ctn (local)",
+"open": 0.0,
+"uom": "kg"
+},
+{
+"code": 132,
+"name": "Gum Tape",
+"open": 0.0,
+"uom": "kg"
+},
+{
+"code": 133,
+"name": "Cup cake 10 gm Box",
+"open": 112.0,
+"uom": "kg"
+},
+{
+"code": 134,
+"name": "Ovi.Baby toast  150/180/200gm Foil",
+"open": 1.3,
+"uom": "kg"
+},
+{
+"code": 135,
+"name": "Ovi.Bela toast 300gm foil",
+"open": 3.29,
+"uom": "kg"
+},
+{
+"code": 136,
+"name": "Ovi.D/c 140 gm ATC Box",
+"open": 132.0,
+"uom": "kg"
+},
+{
+"code": 137,
+"name": "Ovi.Coconut cookise 400gm label",
+"open": 0.0,
+"uom": "kg"
+},
+{
+"code": 138,
+"name": "Ovi.Coconut cookise 800gm label",
+"open": 0.0,
+"uom": "kg"
+},
+{
+"code": 139,
+"name": "Ovi.Salty cookise 400gm label",
+"open": 0.0,
+"uom": "kg"
+},
+{
+"code": 140,
+"name": "Ovi.Peanut cookise 400gm label",
+"open": 0.0,
+"uom": "kg"
+},
+{
+"code": 141,
+"name": "Vanilla cake Roll foil",
+"open": 0.0,
+"uom": "kg"
+},
+{
+"code": 142,
+"name": "Ovi. B/c 400gm common ctn (Exp)",
+"open": 31.0,
+"uom": "kg"
+},
+{
+"code": 143,
+"name": "Ovi.D/c 350 gm ctn (EXP)",
+"open": 61.0,
+"uom": "kg"
+},
+{
+"code": 144,
+"name": "Ovi. Sweet 350 gm ×12 pcs Ctn Exp",
+"open": 59.0,
+"uom": "kg"
+},
+{
+"code": 145,
+"name": "Ovi. Special toast 200gm× 24 pcs ctn (ExP)",
+"open": 70.0,
+"uom": "kg"
+},
+{
+"code": 146,
+"name": "Ovi.Sweet 200gm × 24 pcs ctn (EXP)",
+"open": 36.0,
+"uom": "kg"
+},
+{
+"code": 147,
+"name": "Moittry cookies common ctn",
+"open": 52.0,
+"uom": "kg"
+},
+{
+"code": 148,
+"name": "Biswas 400gm cookise  × 12 pcs common ctn",
+"open": 12.0,
+"uom": "kg"
+},
+{
+"code": 149,
+"name": "Beala toast ctn",
+"open": 14.0,
+"uom": "kg"
+}
+],
+"products": [
+{
+"code": 101,
+"name": "Ovi. Special Toast 180gm"
+},
+{
+"code": 102,
+"name": "Ovi. Special toast 250 gm"
+},
+{
+"code": 103,
+"name": "Ovi. Sweet toast 180 gm"
+},
+{
+"code": 104,
+"name": "Ovi.Sweet Toast 250gm"
+},
+{
+"code": 105,
+"name": "Ovi.Sweet toast 16 gm × 432 pcs"
+},
+{
+"code": 106,
+"name": "Ovi.Butter Cookise 400gm"
+},
+{
+"code": 107,
+"name": "Ovi.Butter Cookise 800gm"
+},
+{
+"code": 108,
+"name": "Ovi.coconut cookise 400gm"
+},
+{
+"code": 109,
+"name": "Ovi.coconut cookise 800gm"
+},
+{
+"code": 110,
+"name": "Ovi. Dry cake 300gm"
+},
+{
+"code": 111,
+"name": "Ovi. Dry cake 350gm"
+},
+{
+"code": 112,
+"name": "Ovi.Milk cake 10 gm×72pcs"
+},
+{
+"code": 113,
+"name": "Ovi.Vanilla cake 10 gm×72pcs"
+},
+{
+"code": 114,
+"name": "Queen B/c 350 gm"
+},
+{
+"code": 115,
+"name": "Queen p/c 350 gm"
+},
+{
+"code": 116,
+"name": "Queen C/C 350 gm"
+},
+{
+"code": 117,
+"name": "Queen B/C 700gm"
+},
+{
+"code": 118,
+"name": "Queen P/c 700gm"
+},
+{
+"code": 119,
+"name": "Queen C/C 700gm"
+}
+],
+"recipes": [
+{
+"p": 101,
+"i": 101,
+"q": 0.096
+},
+{
+"p": 101,
+"i": 106,
+"q": 0.168
+},
+{
+"p": 101,
+"i": 110,
+"q": 1.0
+},
+{
+"p": 101,
+"i": 132,
+"q": 0.025
+},
+{
+"p": 102,
+"i": 102,
+"q": 0.096
+},
+{
+"p": 102,
+"i": 108,
+"q": 0.168
+},
+{
+"p": 102,
+"i": 111,
+"q": 1.0
+},
+{
+"p": 102,
+"i": 132,
+"q": 0.02
+},
+{
+"p": 103,
+"i": 101,
+"q": 0.096
+},
+{
+"p": 103,
+"i": 107,
+"q": 0.168
+},
+{
+"p": 103,
+"i": 110,
+"q": 1.0
+},
+{
+"p": 103,
+"i": 132,
+"q": 0.025
+},
+{
+"p": 104,
+"i": 102,
+"q": 0.096
+},
+{
+"p": 104,
+"i": 109,
+"q": 0.168
+},
+{
+"p": 104,
+"i": 111,
+"q": 1.0
+},
+{
+"p": 104,
+"i": 120,
+"q": 1.5
+},
+{
+"p": 104,
+"i": 121,
+"q": 0.5
+},
+{
+"p": 104,
+"i": 132,
+"q": 0.02
+},
+{
+"p": 105,
+"i": 103,
+"q": 0.192
+},
+{
+"p": 105,
+"i": 104,
+"q": 0.08
+},
+{
+"p": 105,
+"i": 112,
+"q": 1.08
+},
+{
+"p": 105,
+"i": 132,
+"q": 0.05
+},
+{
+"p": 106,
+"i": 113,
+"q": 12.0
+},
+{
+"p": 106,
+"i": 115,
+"q": 0.12
+},
+{
+"p": 106,
+"i": 117,
+"q": 0.0072
+},
+{
+"p": 106,
+"i": 118,
+"q": 0.0048
+},
+{
+"p": 106,
+"i": 120,
+"q": 0.0192
+},
+{
+"p": 106,
+"i": 121,
+"q": 12.0
+},
+{
+"p": 106,
+"i": 123,
+"q": 1.0
+},
+{
+"p": 106,
+"i": 132,
+"q": 0.025
+},
+{
+"p": 107,
+"i": 114,
+"q": 6.0
+},
+{
+"p": 107,
+"i": 115,
+"q": 0.21
+},
+{
+"p": 107,
+"i": 117,
+"q": 0.0096
+},
+{
+"p": 107,
+"i": 119,
+"q": 0.0048
+},
+{
+"p": 107,
+"i": 120,
+"q": 0.0096
+},
+{
+"p": 107,
+"i": 122,
+"q": 6.0
+},
+{
+"p": 107,
+"i": 124,
+"q": 1.0
+},
+{
+"p": 110,
+"i": 125,
+"q": 12.0
+},
+{
+"p": 110,
+"i": 126,
+"q": 0.108
+},
+{
+"p": 110,
+"i": 127,
+"q": 12.0
+},
+{
+"p": 110,
+"i": 128,
+"q": 0.333333333333333
+},
+{
+"p": 110,
+"i": 129,
+"q": 1.0
+},
+{
+"p": 110,
+"i": 132,
+"q": 0.025
+},
+{
+"p": 114,
+"i": 116,
+"q": 0.18
+},
+{
+"p": 114,
+"i": 118,
+"q": 0.0048
+},
+{
+"p": 114,
+"i": 120,
+"q": 0.00828
+},
+{
+"p": 114,
+"i": 142,
+"q": 12.0
+},
+{
+"p": 114,
+"i": 144,
+"q": 12.0
+}
+]
+};
+const KEY = 'dailyPM_v1';
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const DEFAULT_SETTINGS = { company: 'Ovijat Food & Beverage industries Ltd.', preparedBy: 'MD. Bokul Hossain' };
+
+/* ---------- editable names (Settings tab) ---------- */
+const DL = {
+  appTitle: 'Daily PM Report',
+  tab_entry: 'Entry', tab_daily: 'Daily', tab_monthly: 'Monthly', tab_production: 'Production', tab_master: 'Master', tab_settings: 'Settings', tab_backup: 'Backup',
+  f_receive: 'Receive', f_ret: 'Return', f_output: 'Output', f_delivery: 'Delivery', f_hold: 'QA Hold', f_reject: 'Reject',
+  d_stock: 'Daily Stock', d_cons: 'Daily Consumption',
+  r_stock: 'Daily Stock Report', r_cons: 'Daily Consumption Report of Packaging Materials (Production Floor)', r_prod: 'Daily Production Report',
+  m_receive: 'Monthly Receive from Store', m_use: 'Monthly Material Use', m_output: 'Monthly Production Output (Ctn)',
+  m_delivery: 'Monthly Delivery (Ctn)', m_hold: 'Monthly QA Hold (Ctn)', m_reject: 'Monthly Reject (Ctn)',
+  sg_prep: 'Prepared By', sg_sup: 'Supervisor', sg_pm: 'PM', sg_agm: 'AGM',
+  sg_p1: 'Prepare By (Production)', sg_p2: 'SIC (Production)', sg_p3: 'AM (Production)',
+  mp_title: 'Manpower Status', mp_desig: 'Designation', mp_c1: 'Cookies', mp_c2: 'Biscuit', mp_total: 'Total',
+  mp_rows: 'AM\nOfficer\nAsst. Officer\nSupervisor\nOpt\nAsst. Opt\nCasual Worker\nPermanent Worker',
+  ph_item: 'Item Name', ph_shift: 'Shift', ph_open: 'Opening CTN', ph_fgc: 'Finish Goods CTN', ph_fgk: 'Finish Goods KG', ph_wip: 'WIP',
+  ph_hold: 'QA Hold', ph_reject: 'Reject', ph_grand: 'Grand Total Production Kg', ph_del: 'Total Delivery CTN', ph_close: 'Closing CTN', ph_run: 'Production Run Time'
+};
+const LABEL_GROUPS = [
+  ['App', [['appTitle', 'App title (top bar)']]],
+  ['Tab names', [['tab_entry', 'Entry'], ['tab_daily', 'Daily'], ['tab_monthly', 'Monthly'], ['tab_production', 'Production'], ['tab_master', 'Master'], ['tab_settings', 'Settings'], ['tab_backup', 'Backup']]],
+  ['Entry form names', [['f_receive', 'Receive'], ['f_ret', 'Return'], ['f_output', 'Output'], ['f_delivery', 'Delivery'], ['f_hold', 'QA Hold'], ['f_reject', 'Reject']]],
+  ['Daily report names', [['d_stock', 'Daily Stock (button)'], ['d_cons', 'Daily Consumption (button)'], ['r_stock', 'Daily Stock (report title)'], ['r_cons', 'Daily Consumption (report title)'], ['r_prod', 'Production Report (report title)']]],
+  ['Monthly report titles', [['m_receive', 'Receive'], ['m_use', 'Material Use'], ['m_output', 'Output'], ['m_delivery', 'Delivery'], ['m_hold', 'QA Hold'], ['m_reject', 'Reject']]],
+  ['Signature labels (stock, consumption, monthly)', [['sg_prep', 'Signature 1'], ['sg_sup', 'Signature 2'], ['sg_pm', 'Signature 3'], ['sg_agm', 'Signature 4']]],
+  ['Signature labels (Production Report)', [['sg_p1', 'Signature 1'], ['sg_p2', 'Signature 2'], ['sg_p3', 'Signature 3']]],
+  ['Production Report column headings', [['ph_item', 'Item name'], ['ph_shift', 'Shift'], ['ph_open', 'Opening'], ['ph_fgc', 'Finish Goods CTN'], ['ph_fgk', 'Finish Goods KG'], ['ph_wip', 'WIP (group heading)'],
+    ['ph_hold', 'QA Hold'], ['ph_reject', 'Reject'], ['ph_grand', 'Grand Total Production Kg'], ['ph_del', 'Total Delivery'], ['ph_close', 'Closing'], ['ph_run', 'Production Run Time']]],
+  ['Manpower table', [['mp_title', 'Table title'], ['mp_desig', 'First column heading'], ['mp_c1', 'Column 1 heading'], ['mp_c2', 'Column 2 heading'], ['mp_total', 'Total row label']]]
+];
+const T = k => (S.labels && S.labels[k] != null && String(S.labels[k]).trim() !== '') ? S.labels[k] : DL[k];
+
+/* ---------- storage ---------- */
+let storageOK = true, S;
+function fresh() {
+  return { v: 3, items: SEED.items, products: SEED.products, recipes: SEED.recipes,
+           receive: [], ret: [], output: [], delivery: [], hold: [], reject: [],
+           fg: {}, openOv: {}, runtime: {}, manpower: {}, mpx: {}, prodShow: {}, labels: {},
+           nextId: 1, lastBackup: null, settings: { ...DEFAULT_SETTINGS } };
+}
+function migrate(d) {
+  d.settings = { ...DEFAULT_SETTINGS, ...(d.settings || {}) };
+  ['hold', 'reject'].forEach(k => { if (!Array.isArray(d[k])) d[k] = []; });
+  ['fg', 'openOv', 'runtime', 'manpower', 'mpx', 'prodShow', 'labels'].forEach(k => { if (!d[k] || typeof d[k] !== 'object') d[k] = {}; });
+  d.items.forEach(i => { if (!i.uom) i.uom = 'kg'; if (typeof i.open !== 'number') i.open = 0; });
+  d.items.sort((a, b) => a.code - b.code); d.products.sort((a, b) => a.code - b.code);
+  if (!d.nextId) d.nextId = 1 + Math.max(0, ...['receive', 'ret', 'output', 'delivery', 'hold', 'reject'].flatMap(k => d[k].map(e => e.id || 0)));
+  d.v = 3; return d;
+}
+function load() {
+  try { const s = localStorage.getItem(KEY); if (s) return migrate(JSON.parse(s)); } catch (e) { storageOK = false; }
+  return null;
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { storageOK = false; }
+  updateStatus();
+}
+S = load() || fresh();
+const LISTS = ['receive', 'ret', 'output', 'delivery', 'hold', 'reject'];
+function updateStatus() {
+  const n = LISTS.reduce((a, k) => a + S[k].length, 0);
+  $('#status').textContent = (storageOK ? 'Saved ✓ · ' : '⚠ Not saving · ') + n + ' entries';
+  document.title = T('appTitle'); $('#appTitle').textContent = T('appTitle');
+}
+
+/* ---------- helpers ---------- */
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONFULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const pad = n => String(n).padStart(2, '0');
+const todayISO = () => { const d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+const fmtDate = iso => { const [y, m, d] = iso.split('-'); return d + '-' + MON[+m - 1] + '-' + y; };
+const fmtMonth = ym => { const [y, m] = ym.split('-'); return MONFULL[+m - 1] + ' ' + y; };
+const fmt = n => { n = Math.round(n * 1000) / 1000; return Object.is(n, -0) ? '0' : String(n); };
+const num = s => parseFloat(String(s).replace(',', '.'));
+const itemName = c => (S.items.find(i => i.code === c) || {}).name || '';
+const prodName = c => (S.products.find(p => p.code === c) || {}).name || '';
+const TY = {
+  receive:  { kind: 'item', voucher: true,  shift: false },
+  ret:      { kind: 'item', voucher: true,  shift: false },
+  output:   { kind: 'prod', voucher: false, shift: true },
+  delivery: { kind: 'prod', voucher: false, shift: false },
+  hold:     { kind: 'prod', voucher: false, shift: true },
+  reject:   { kind: 'prod', voucher: false, shift: true }
+};
+const tl = k => T('f_' + k);
+const SHIFTS = ['A', 'B', 'C'];
+const U = { tab: 'entry', type: 'receive', date: todayISO(), shift: 'A', editId: null,
+            daily: 'stock', stockDate: todayISO(), month: todayISO().slice(0, 7), rep: 'use', prodDate: todayISO(),
+            msub: 'items', editItem: null, editProd: null, msg: null };
+
+/* ---------- calculations ---------- */
+function sumBy(list, code, pred) { let t = 0; for (const e of list) if (e.code === code && pred(e.date)) t += e.qty; return t; }
+function useOf(item, pred) {   // item use = sum over recipe lines of (qty per ctn x ctn output of that product)
+  let t = 0;
+  for (const r of S.recipes) if (r.i === item) t += r.q * sumBy(S.output, r.p, pred);
+  return t;
+}
+function stockRows(date) {
+  return S.items.map(it => {
+    const before = d => d < date, on = d => d === date;
+    const open = it.open + sumBy(S.receive, it.code, before) + sumBy(S.ret, it.code, before) - useOf(it.code, before);
+    const rc = sumBy(S.receive, it.code, on), rt = sumBy(S.ret, it.code, on), use = useOf(it.code, on);
+    const total = open + rc + rt;
+    return { code: it.code, name: it.name, uom: it.uom, open, rc, rt, total, use, actual: total - use };
+  });
+}
+const MLIST = { receive: 'receive', use: null, output: 'output', delivery: 'delivery', hold: 'hold', reject: 'reject' };
+function monthRows(ym, rep) {
+  const [y, m] = ym.split('-').map(Number), days = new Date(y, m, 0).getDate();
+  const isItem = rep === 'receive' || rep === 'use';
+  const master = isItem ? S.items : S.products;
+  const rows = master.map(x => {
+    const vals = [];
+    for (let d = 1; d <= days; d++) {
+      const iso = ym + '-' + pad(d), on = k => k === iso;
+      vals.push(rep === 'use' ? useOf(x.code, on) : sumBy(S[MLIST[rep]], x.code, on));
+    }
+    return { code: x.code, name: x.name, vals, total: vals.reduce((a, b) => a + b, 0) };
+  });
+  return { days, rows };
+}
+
+/* ---------- production report logic ---------- */
+const kgPerCtn = c => { const f = S.fg[c]; return f && f.pcs > 0 && f.g > 0 ? f.pcs * f.g / 1000 : 0; };
+const netCtn = (c, pred) => sumBy(S.output, c, pred) - sumBy(S.hold, c, pred) - sumBy(S.reject, c, pred) - sumBy(S.delivery, c, pred);
+function openingOf(c, date) {   // latest typed opening on/before this date, then add each day's movement; none typed = 0 start
+  let ad = null, av = 0;
+  for (const k in S.openOv) { const [d, cc] = k.split('|'); if (+cc === c && d <= date && (ad === null || d > ad)) { ad = d; av = S.openOv[k]; } }
+  return av + netCtn(c, d => d < date && (ad === null || d >= ad));
+}
+function prodModel(date) {
+  const on = d => d === date, extra = S.prodShow[date] || [];
+  const show = S.products.filter(p => { const c = p.code;
+    return sumBy(S.output, c, on) || sumBy(S.hold, c, on) || sumBy(S.reject, c, on) || sumBy(S.delivery, c, on) || Math.abs(openingOf(c, date)) > 1e-9 || extra.includes(c); });
+  let noShift = 0; const noKg = [];
+  const by = (list, c, sh) => list.filter(e => e.code === c && e.date === date && (!sh || e.shift === sh)).reduce((a, e) => a + e.qty, 0);
+  const blocks = show.map(p => {
+    const c = p.code, kg = kgPerCtn(c);
+    const rows = SHIFTS.map(sh => { const fg = by(S.output, c, sh), h = by(S.hold, c, sh), r = by(S.reject, c, sh);
+      return { sh, fg, fgk: fg * kg, h, r, grand: (fg + h + r) * kg, run: S.runtime[date + '|' + c + '|' + sh] || '' }; });
+    const fg = by(S.output, c), h = by(S.hold, c), r = by(S.reject, c), del = by(S.delivery, c), open = openingOf(c, date);
+    const inShifts = rows.reduce((a, x) => a + x.fg + x.h + x.r, 0);
+    if (Math.abs(fg + h + r - inShifts) > 1e-9) noShift += 1;
+    if (!kg && (fg + h + r) > 0) noKg.push(p.name);
+    return { p, rows, tot: { open, fg, fgk: fg * kg, h, r, grand: (fg + h + r) * kg, del, close: open + fg - h - r - del }, ov: (date + '|' + c) in S.openOv };
+  });
+  const g = { open: 0, fg: 0, fgk: 0, h: 0, r: 0, grand: 0, del: 0, close: 0 };
+  blocks.forEach(b => Object.keys(g).forEach(k => g[k] += b.tot[k]));
+  return { blocks, grand: g, noShift, noKg, mpm: getMP(date) };
+}
+/* manpower table: per-date and fully editable (headings, rows); falls back to the defaults in Settings */
+function getMP(date) {
+  if (S.mpx[date]) return S.mpx[date];
+  const old = S.manpower[date] || {};
+  return { h: [T('mp_c1'), T('mp_c2')], rows: T('mp_rows').split('\n').map(x => x.trim()).filter(Boolean).map((n, i) => ({ n, c1: (old[i] || {}).c1 || '', c2: (old[i] || {}).c2 || '' })) };
+}
+function editMP(date) { if (!S.mpx[date]) S.mpx[date] = JSON.parse(JSON.stringify(getMP(date))); return S.mpx[date]; }
+const mpSum = (m, k) => m.rows.reduce((a, r) => a + (num(r[k]) || 0), 0);
+function updMPTot() { const m = getMP(U.prodDate), td = document.querySelectorAll('table.mp tr.tot td'); if (td.length > 2) { td[1].textContent = fmt(mpSum(m, 'c1')); td[2].textContent = fmt(mpSum(m, 'c2')); } }
+const cz = v => Math.abs(v) < 0.0005 ? '' : fmt(v);
+
+/* ---------- report model (one source for screen, print, CSV and PDF) ---------- */
+const REPKEYS = ['receive', 'use', 'output', 'delivery', 'hold', 'reject'];
+function signs(kind) {
+  return kind === 'prod' ? [[T('sg_p1'), S.settings.preparedBy], [T('sg_p2'), ''], [T('sg_p3'), '']]
+                         : [[T('sg_prep'), S.settings.preparedBy], [T('sg_sup'), ''], [T('sg_pm'), ''], [T('sg_agm'), '']];
+}
+function buildReport() {
+  const st = S.settings;
+  if (U.tab === 'production') {
+    const M = prodModel(U.prodDate);
+    const cols = [{ h: T('ph_item'), w: 27, left: true }, { h: T('ph_shift'), w: 5, left: true }, { h: T('ph_open'), w: 9 }, { h: T('ph_fgc'), w: 9 }, { h: T('ph_fgk'), w: 9 },
+      { h: T('ph_wip') + ' - ' + T('ph_hold'), w: 8 }, { h: T('ph_wip') + ' - ' + T('ph_reject'), w: 8 }, { h: T('ph_grand'), w: 11 }, { h: T('ph_del'), w: 9 }, { h: T('ph_close'), w: 9 }, { h: T('ph_run'), w: 11, left: true }];
+    const rows = [];
+    M.blocks.forEach(b => {
+      b.rows.forEach((r, i) => rows.push({ k: 'row', r: [i === 0 ? b.p.name : '', r.sh, '', cz(r.fg), cz(r.fgk), cz(r.h), cz(r.r), cz(r.grand), '', '', r.run] }));
+      const t = b.tot; rows.push({ k: 'tot', r: ['', 'Total', fmt(t.open), fmt(t.fg), fmt(t.fgk), fmt(t.h), fmt(t.r), fmt(t.grand), fmt(t.del), fmt(t.close), ''] });
+    });
+    const g = M.grand;
+    rows.push({ k: 'tot', r: ['GRAND TOTAL', '', fmt(g.open), fmt(g.fg), fmt(g.fgk), fmt(g.h), fmt(g.r), fmt(g.grand), fmt(g.del), fmt(g.close), ''] });
+    const mm = M.mpm;
+    return { kind: 'prod', file: 'Daily-Production-' + U.prodDate, title: T('r_prod'), sub: 'Date: ' + fmtDate(U.prodDate), company: st.company, cols, pre: [], rows, total: null,
+      manpower: { title: T('mp_title'), head: [T('mp_desig'), mm.h[0], mm.h[1]],
+        rows: [...mm.rows.map(r => [r.n, r.c1 || '', r.c2 || '']), [T('mp_total'), fmt(mpSum(mm, 'c1')), fmt(mpSum(mm, 'c2'))]] },
+      signs: signs('prod') };
+  }
+  if (U.tab === 'daily' && U.daily === 'stock') {
+    const rows = stockRows(U.stockDate), sum = k => rows.reduce((a, r) => a + r[k], 0);
+    return { kind: 'stock', file: 'Daily-Stock-' + U.stockDate, title: T('r_stock'), sub: 'Date: ' + fmtDate(U.stockDate), company: st.company,
+      cols: [{ h: 'Code', w: 6, left: true }, { h: 'Item Name', w: 40, left: true }, { h: 'UoM', w: 5, left: true }, { h: 'Opening Stock', w: 11 }, { h: 'Receive', w: 9 },
+             { h: 'Return', w: 9 }, { h: 'Total Available', w: 11 }, { h: 'Use', w: 9 }, { h: 'Actual Stock', w: 11 }],
+      pre: [], neg: 8, signs: signs(),
+      rows: rows.map(r => [String(r.code), r.name, r.uom, fmt(r.open), fmt(r.rc), fmt(r.rt), fmt(r.total), fmt(r.use), fmt(r.actual)]),
+      total: ['', 'TOTAL', '', fmt(sum('open')), fmt(sum('rc')), fmt(sum('rt')), fmt(sum('total')), fmt(sum('use')), fmt(sum('actual'))] };
+  }
+  if (U.tab === 'daily') {
+    const on = d => d === U.stockDate;
+    const prods = S.products.map(p => ({ p, ctn: sumBy(S.output, p.code, on) })).filter(x => x.ctn > 0);
+    const rows = [];
+    S.items.forEach(it => {
+      const vals = prods.map(x => S.recipes.filter(r => r.i === it.code && r.p === x.p.code).reduce((a, r) => a + r.q * x.ctn, 0));
+      const tot = vals.reduce((a, b) => a + b, 0);
+      if (tot > 0) rows.push({ it, vals, tot });
+    });
+    return { kind: 'cons', file: 'Daily-Consumption-' + U.stockDate, title: T('r_cons'), sub: 'Date: ' + fmtDate(U.stockDate), company: st.company, signs: signs(),
+      cols: [{ h: 'Code', w: 6, left: true }, { h: 'Name of Packaging Materials', w: 30, left: true }, { h: 'UoM', w: 5, left: true },
+             ...prods.map(x => ({ h: x.p.name, w: 10 })), { h: 'Total', w: 10 }],
+      pre: [['', 'Items (Total ctn/day)', '', ...prods.map(x => fmt(x.ctn)), fmt(prods.reduce((a, x) => a + x.ctn, 0))]],
+      rows: rows.map(r => [String(r.it.code), r.it.name, r.it.uom, ...r.vals.map(cz), fmt(r.tot)]),
+      total: ['', 'TOTAL', '', ...prods.map((x, k) => cz(rows.reduce((a, r) => a + r.vals[k], 0))), fmt(rows.reduce((a, r) => a + r.tot, 0))],
+      empty: prods.length ? '' : 'No Output entries on this date, so there is no consumption to show.' };
+  }
+  const { days, rows } = monthRows(U.month, U.rep);
+  const colTot = Array.from({ length: days }, (_, i) => rows.reduce((a, r) => a + r.vals[i], 0));
+  const isItem = U.rep === 'receive' || U.rep === 'use';
+  return { kind: 'month', file: 'Monthly-' + U.rep + '-' + U.month, title: T('m_' + U.rep), sub: 'Month: ' + fmtMonth(U.month), company: st.company, signs: signs(),
+    cols: [{ h: 'Code', w: 0, left: true, fixed: 24 }, { h: isItem ? 'Item Name' : 'Product Name', w: 0, left: true, fixed: 150 },
+           ...Array.from({ length: days }, (_, i) => ({ h: String(i + 1), w: 1 })), { h: 'Total', w: 0, fixed: 46 }],
+    pre: [], rows: rows.map(r => [String(r.code), r.name, ...r.vals.map(cz), cz(r.total)]),
+    total: ['', 'TOTAL', ...colTot.map(cz), cz(rows.reduce((a, r) => a + r.total, 0))] };
+}
+function signHTML(R) { return `<div class="sign">${R.signs.map(([l, n]) => `<div>${esc(l)}${n ? '<br>' + esc(n) : ''}</div>`).join('')}</div>`; }
+function reportHTML(R) {
+  const th = R.cols.map((c, i) => `<th class="${c.left ? 'l' : ''}${i === 1 ? ' sticky1' : ''}">${esc(c.h)}</th>`).join('');
+  const tr = (cells, cls) => `<tr class="${cls || ''}">${cells.map((v, i) => {
+    const neg = R.neg === i && parseFloat(v) < -0.0005;
+    return `<td class="${R.cols[i].left ? 'l' : ''}${i === 1 ? ' sticky1' : ''}${neg ? ' neg' : ''}">${esc(v)}</td>`;
+  }).join('')}</tr>`;
+  const wide = R.kind === 'month' ? ' wide' : '';
+  return `
+  <div class="rhead"><div class="co">${esc(R.company)}</div><div class="rt">${esc(R.title)}</div><div class="rs">${esc(R.sub)}</div></div>
+  ${R.empty ? `<div class="msg warn">${esc(R.empty)}</div>` : ''}
+  <div class="tw"><table class="${wide}"><thead><tr>${th}</tr></thead><tbody>
+    ${R.pre.map(r => tr(r, 'pre')).join('')}${R.rows.map(r => tr(r)).join('')}${tr(R.total, 'tot')}
+  </tbody></table></div>${signHTML(R)}`;
+}
+
+/* ---------- csv / download ---------- */
+function csv(rows) { return '﻿' + rows.map(r => r.map(c => '"' + String(c ?? '').replace(/"/g, '""') + '"').join(',')).join('\r\n'); }
+function download(name, data, type) {
+  if (window.AndroidPM && AndroidPM.saveFile) {   /* inside the Android app: hand the file to the native Save/Share dialog */
+    const blob = new Blob([data], { type: type || 'text/csv;charset=utf-8' }), fr = new FileReader();
+    fr.onload = () => AndroidPM.saveFile(name, blob.type || 'application/octet-stream', String(fr.result).split(',')[1] || '');
+    fr.readAsDataURL(blob); return;
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([data], { type: type || 'text/csv;charset=utf-8' }));
+  a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 800);
+}
+function reportCSV(R) {
+  const body = R.rows.map(x => Array.isArray(x) ? x : x.r);
+  const out = [[R.company], [R.title], [R.sub], R.cols.map(c => c.h), ...R.pre, ...body];
+  if (R.total) out.push(R.total);
+  if (R.manpower) out.push([], [R.manpower.title], R.manpower.head, ...R.manpower.rows);
+  return csv(out);
+}
+
+/* ---------- PDF writer (A4 landscape, built-in Helvetica, works offline) ---------- */
+const HW = [278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,
+  1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,
+  333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584];
+function tw(s, fs, bold) { let w = 0; for (const ch of String(s)) { const c = ch.charCodeAt(0); w += c >= 32 && c < 127 ? HW[c - 32] : 556; } return w * fs / 1000 * (bold ? 1.06 : 1); }
+function clip(s, maxw, fs, bold) {
+  s = String(s); if (tw(s, fs, bold) <= maxw) return s;
+  while (s.length > 1 && tw(s + '..', fs, bold) > maxw) s = s.slice(0, -1);
+  return s + '..';
+}
+function wrapText(s, maxw, fs, bold) {
+  const out = []; let line = '';
+  for (const word of String(s).split(/\s+/)) {
+    const t = line ? line + ' ' + word : word;
+    if (tw(t, fs, bold) <= maxw) line = t;
+    else { if (line) out.push(line); line = tw(word, fs, bold) <= maxw ? word : clip(word, maxw, fs, bold); }
+  }
+  if (line) out.push(line); return out.length ? out : [''];
+}
+function pdfStr(s) {
+  s = String(s).replace(/[–—]/g, '-').replace(/·/g, '-');
+  let o = '';
+  for (const ch of s) {
+    const c = ch.charCodeAt(0);
+    if (ch === '(' || ch === ')' || ch === '\\') o += '\\' + ch;
+    else if (c >= 32 && c < 127) o += ch;
+    else if (c === 0xd7 || c === 0xb0 || c === 0xb1) o += '\\' + c.toString(8);
+    else o += '?';
+  }
+  return '(' + o + ')';
+}
+function pageBuilder() {
+  const b = { s: '' };
+  b.T = (x, y, str, size, bold, rgb) => { b.s += (rgb ? rgb + ' rg ' : '0 g ') + 'BT /' + (bold ? 'F2' : 'F1') + ' ' + size + ' Tf 1 0 0 1 ' + x.toFixed(2) + ' ' + y.toFixed(2) + ' Tm ' + pdfStr(str) + ' Tj ET\n'; };
+  b.rect = (x, y, w, h, rgb) => { b.s += rgb + ' rg ' + x.toFixed(2) + ' ' + y.toFixed(2) + ' ' + w.toFixed(2) + ' ' + h.toFixed(2) + ' re f\n'; };
+  b.line = (x1, y1, x2, y2) => { b.s += '0.55 G 0.4 w ' + x1.toFixed(2) + ' ' + y1.toFixed(2) + ' m ' + x2.toFixed(2) + ' ' + y2.toFixed(2) + ' l S\n'; };
+  return b;
+}
+function makePDF(R) {
+  const W = 842, H = 595, M = 24, avail = W - 2 * M;
+  const fixed = R.cols.reduce((a, c) => a + (c.fixed || 0), 0), flex = R.cols.reduce((a, c) => a + (c.fixed ? 0 : c.w), 0);
+  const cw = R.cols.map(c => c.fixed ? c.fixed : (avail - fixed) * c.w / flex);
+  const x0 = []; cw.reduce((a, w, i) => (x0[i] = a, a + w), M);
+  const norm = x => Array.isArray(x) ? { r: x, k: 'row' } : x;
+  const allRows = [...R.pre, ...R.rows].map(norm); if (R.total) allRows.push({ r: R.total, k: 'tot' });
+  const hfs = 6.5; let hl = 1;
+  R.cols.forEach((c, i) => { hl = Math.max(hl, wrapText(c.h, cw[i] - 4, hfs, true).length); });
+  hl = Math.min(hl, 5);
+  const hh = hl * (hfs + 1.6) + 4;
+  const top = H - M - 46, bottom = M + 50;
+  const rowsAvail = top - bottom - hh;
+  let rh = Math.min(12, rowsAvail / allRows.length), perPage = allRows.length;
+  if (rh < 8.4) { rh = 8.4; perPage = Math.floor(rowsAvail / rh); }
+  const fs = Math.min(8, rh - 2.6);
+  const chunks = []; for (let i = 0; i < allRows.length; i += perPage) chunks.push(allRows.slice(i, i + perPage));
+  const head = b => { b.T(M, H - M - 11, R.company, 12, true); b.T(M, H - M - 25, R.title, 10, true, '0.12 0.31 0.47'); b.T(M, H - M - 38, R.sub, 8.5, false, '0.3 0.3 0.3'); };
+  const pages = chunks.map(rows => {
+    const b = pageBuilder(); head(b);
+    let y = top; b.rect(M, y - hh, avail, hh, '0.91 0.93 0.96');
+    R.cols.forEach((c, i) => {
+      wrapText(c.h, cw[i] - 4, hfs, true).slice(0, hl).forEach((ln, k) => {
+        const yy = y - 2 - hfs - k * (hfs + 1.6) + 1.2; b.T(c.left ? x0[i] + 2 : x0[i] + cw[i] - 2 - tw(ln, hfs, true), yy, ln, hfs, true); });
+    });
+    b.line(M, y, M + avail, y); b.line(M, y - hh, M + avail, y - hh); y -= hh;
+    rows.forEach(({ r, k }) => {
+      if (k !== 'row') b.rect(M, y - rh, avail, rh, '0.91 0.93 0.96');
+      r.forEach((v, i) => {
+        const bold = k !== 'row', str = clip(v, cw[i] - 4, fs, bold);
+        const red = R.neg === i && k === 'row' && parseFloat(v) < -0.0005;
+        b.T(R.cols[i].left ? x0[i] + 2 : x0[i] + cw[i] - 2 - tw(str, fs, bold), y - rh + (rh - fs) / 2 + fs * 0.2, str, fs, bold || red, red ? '0.7 0.1 0.1' : null);
+      });
+      y -= rh; b.line(M, y, M + avail, y);
+    });
+    x0.forEach(x => b.line(x, y, x, top)); b.line(M + avail, y, M + avail, top);
+    return { b, y };
+  });
+  // manpower table after the main table (same page if it fits, otherwise a new page)
+  if (R.manpower) {
+    const mp = R.manpower, mrh = 11, need = 16 + (mp.rows.length + 1) * mrh, mw = [130, 60, 60];
+    let last = pages[pages.length - 1];
+    if (last.y - 14 - need < M + 50) { const b = pageBuilder(); head(b); last = { b, y: H - M - 52 }; pages.push(last); }
+    const b = last.b; let y = last.y - 14;
+    b.T(M, y, mp.title, 9, true, '0.12 0.31 0.47'); y -= 5;
+    const rows = [{ r: mp.head, k: 'tot' }, ...mp.rows.map((r, i) => ({ r, k: i === mp.rows.length - 1 ? 'tot' : 'row' }))], mx = [M, M + mw[0], M + mw[0] + mw[1]], tot = mw[0] + mw[1] + mw[2], yt = y;
+    b.line(M, y, M + tot, y);
+    rows.forEach(({ r, k }) => {
+      if (k !== 'row') b.rect(M, y - mrh, tot, mrh, '0.91 0.93 0.96');
+      r.forEach((v, i) => { const bold = k !== 'row', str = clip(v, mw[i] - 4, 7, bold); b.T(i === 0 ? mx[i] + 2 : mx[i] + mw[i] - 2 - tw(str, 7, bold), y - mrh + 3, str, 7, bold); });
+      y -= mrh; b.line(M, y, M + tot, y);
+    });
+    mx.forEach(x => b.line(x, y, x, yt)); b.line(M + tot, y, M + tot, yt);
+  }
+  // signatures on the last page, page numbers everywhere
+  const sg = R.signs || [], n = sg.length || 1, bw = (avail - (n - 1) * 30) / n;
+  const stamp = new Date(), gen = fmtDate(todayISO()) + ' ' + pad(stamp.getHours()) + ':' + pad(stamp.getMinutes());
+  const streams = pages.map((pg, pi) => {
+    const b = pg.b;
+    if (pi === pages.length - 1) sg.forEach(([l, nm], k) => { const x = M + k * (bw + 30); b.line(x, M + 30, x + bw, M + 30); b.T(x + (bw - tw(l, 8, true)) / 2, M + 20, l, 8, true); if (nm) b.T(x + (bw - tw(nm, 8)) / 2, M + 33, nm, 8); });
+    b.T(M, 12, 'Generated ' + gen, 7, false, '0.4 0.4 0.4');
+    const label = 'Page ' + (pi + 1) + ' of ' + pages.length; b.T(W - M - tw(label, 7), 12, label, 7, false, '0.4 0.4 0.4');
+    return b.s;
+  });
+  const objs = []; const add = str => objs.push(str) && objs.length;
+  add('<< /Type /Catalog /Pages 2 0 R >>');
+  add('<< /Type /Pages /Kids [' + streams.map((_, i) => (5 + i * 2) + ' 0 R').join(' ') + '] /Count ' + streams.length + ' >>');
+  add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');
+  add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
+  streams.forEach((st, i) => {
+    add('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + W + ' ' + H + '] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ' + (6 + i * 2) + ' 0 R >>');
+    add('<< /Length ' + st.length + ' >>\nstream\n' + st + 'endstream');
+  });
+  let out = '%PDF-1.4\n', offs = [];
+  objs.forEach((o, i) => { offs.push(out.length); out += (i + 1) + ' 0 obj\n' + o + '\nendobj\n'; });
+  const xr = out.length;
+  out += 'xref\n0 ' + (objs.length + 1) + '\n0000000000 65535 f \n' + offs.map(o => String(o).padStart(10, '0') + ' 00000 n \n').join('');
+  out += 'trailer\n<< /Size ' + (objs.length + 1) + ' /Root 1 0 R /Info << /Title ' + pdfStr(R.title) + ' >> >>\nstartxref\n' + xr + '\n%%EOF';
+  const bytes = new Uint8Array(out.length); for (let i = 0; i < out.length; i++) bytes[i] = out.charCodeAt(i) & 255;
+  return bytes;
+}
+
+/* ---------- views ---------- */
+const TABS = ['entry', 'daily', 'monthly', 'production', 'master', 'settings', 'backup'];
+const TABVIEW = { entry: 'viewEntry', daily: 'viewDaily', monthly: 'viewMonth', production: 'viewProduction', master: 'viewMaster', settings: 'viewSettings', backup: 'viewBackup' };
+function renderTabs() {
+  $('#tabs').innerHTML = TABS.map(k => `<button role="tab" data-tab="${k}" aria-selected="${U.tab === k}">${esc(T('tab_' + k))}</button>`).join('');
+}
+function banner() {
+  let h = '';
+  if (!storageOK) h += `<div class="msg err">This browser is not letting the app save data. Download a backup from the Backup tab after every session.</div>`;
+  if (U.msg) h += `<div class="msg ${U.msg.t}">${esc(U.msg.s)}</div>`;
+  return h;
+}
+function render() {
+  renderTabs();
+  const v = { entry: viewEntry, daily: viewDaily, monthly: viewMonth, production: viewProduction, master: viewMaster, settings: viewSettings, backup: viewBackup }[U.tab];
+  $('#app').innerHTML = `<div class="noprint">${banner()}</div>` + v();
+  U.msg = null;
+  if (U.tab === 'entry') fillOptions();
+  updateStatus();
+}
+
+function optionsFor(kind, filter, selected) {
+  const list = kind === 'item' ? S.items : S.products, f = filter.trim().toLowerCase();
+  return '<option value="">— Select —</option>' + list
+    .filter(x => !f || String(x.code).includes(f) || x.name.toLowerCase().includes(f) || x.code === selected)
+    .map(x => `<option value="${x.code}"${x.code === selected ? ' selected' : ''}>${x.code} — ${esc(x.name)}</option>`).join('');
+}
+function fillOptions() {
+  const t = TY[U.type], sel = $('#f-code'); if (!sel) return;
+  const cur = sel.value ? +sel.value : (U.editId ? (S[U.type].find(e => e.id === U.editId) || {}).code : null);
+  sel.innerHTML = optionsFor(t.kind, $('#f-filter').value, cur);
+  showName();
+}
+function showName() {
+  const t = TY[U.type], c = +$('#f-code').value;
+  $('#f-name').textContent = c ? (t.kind === 'item' ? itemName(c) : prodName(c)) : '';
+}
+function viewEntry() {
+  const t = TY[U.type], ed = U.editId ? S[U.type].find(e => e.id === U.editId) : null;
+  const date = ed ? ed.date : U.date, shift = ed ? (ed.shift || '') : U.shift;
+  const chips = LISTS.map(k => `<button class="chip" data-type="${k}" aria-pressed="${U.type === k}">${esc(tl(k))}</button>`).join('');
+  const recent = [...S[U.type]].sort((a, b) => a.date < b.date ? 1 : a.date > b.date ? -1 : b.id - a.id).slice(0, 25);
+  const nm = c => t.kind === 'item' ? itemName(c) : prodName(c);
+  const wip = U.type === 'hold' || U.type === 'reject';
+  return `
+  <div class="card">
+    <div class="chips" style="margin-bottom:6px">${chips}</div>
+    <h2 style="margin-top:12px">${wip ? 'WIP — ' : ''}${esc(tl(U.type))} Form${ed ? ' — Editing' : ''}</h2>
+    <form id="form" autocomplete="off">
+      <label for="f-date">Date</label>
+      <input class="in" type="date" id="f-date" value="${date}" required>
+      <label for="f-filter">Search ${t.kind === 'item' ? 'item' : 'product'} (code or name)</label>
+      <input type="search" id="f-filter" placeholder="e.g. 101 or HDPE">
+      <label for="f-code">${t.kind === 'item' ? 'Item Code' : 'Product Code'}</label>
+      <select class="in" id="f-code" required></select>
+      <div class="name" id="f-name"></div>
+      <div class="row stack" style="grid-template-columns:${t.voucher || t.shift ? '1fr 1fr' : '1fr'}">
+        <div><label for="f-qty">${t.kind === 'prod' ? 'Quantity (Ctn)' : 'Quantity'}</label>
+          <input class="in" id="f-qty" inputmode="decimal" placeholder="0" value="${ed ? ed.qty : ''}" required></div>
+        ${t.voucher ? `<div><label for="f-vo">Voucher No</label><input class="in" id="f-vo" value="${esc(ed ? ed.voucher : '')}"></div>` : ''}
+        ${t.shift ? `<div><label for="f-shift">Shift</label><select class="in" id="f-shift">${ed && !shift ? '<option value="">— none —</option>' : ''}${SHIFTS.map(x => `<option${x === shift ? ' selected' : ''}>${x}</option>`).join('')}</select></div>` : ''}
+      </div>
+      <label for="f-note">Note</label>
+      <input class="in" id="f-note" value="${esc(ed ? ed.note : '')}">
+      <div id="form-msg"></div>
+      <div class="btns">
+        <button class="btn" type="submit">${ed ? 'Update' : 'Submit'}</button>
+        ${ed ? '<button class="btn sec" type="button" id="cancel-edit">Cancel</button>' : ''}
+      </div>
+    </form>
+  </div>
+  <div class="card list">
+    <h2>Recent ${esc(tl(U.type))} entries <span class="pill">${S[U.type].length}</span></h2>
+    ${recent.length ? recent.map(e => `
+      <div class="it"><div><div class="t">${fmtDate(e.date)} · ${e.code} <span class="muted">${esc(nm(e.code))}</span></div>
+        <div class="muted">Qty: <b>${fmt(e.qty)}</b>${t.shift ? ' · Shift: ' + esc(e.shift || '—') : ''}${e.voucher ? ' · Voucher: ' + esc(e.voucher) : ''}${e.note ? ' · ' + esc(e.note) : ''}</div></div>
+        <div style="display:flex;gap:6px"><button class="btn sec sm" data-edit="${e.id}">Edit</button><button class="btn danger sm" data-del="${e.id}">Delete</button></div></div>`).join('')
+      : '<div class="muted">No entries yet.</div>'}
+  </div>`;
+}
+
+function reportActions(extra) {
+  return `<div class="btns noprint">${extra || ''}<button class="btn" id="do-print">Print (A4 Landscape)</button><button class="btn" id="do-pdf">Save as PDF</button><button class="btn sec" id="do-csv">Download CSV</button></div>`;
+}
+function viewDaily() {
+  const R = buildReport();
+  return `
+  <div class="card noprint"><div class="chips" style="margin-bottom:6px">
+      <button class="chip" data-daily="stock" aria-pressed="${U.daily === 'stock'}">${esc(T('d_stock'))}</button>
+      <button class="chip" data-daily="cons" aria-pressed="${U.daily === 'cons'}">${esc(T('d_cons'))}</button></div>
+    <label for="sd">Date</label><input class="in" type="date" id="sd" value="${U.stockDate}">
+    <div class="muted" style="margin-top:8px">${U.daily === 'stock'
+      ? 'Opening = initial balance + earlier Receive/Return − earlier use. Use = recipe × Output cartons.'
+      : 'Packaging material consumed per product for the day (recipe × Output cartons). Only products with Output on this date are shown.'}</div>
+    ${reportActions()}</div>
+  ${reportHTML(R)}`;
+}
+function viewMonth() {
+  const R = buildReport();
+  return `
+  <div class="card noprint">
+    <div class="row stack"><div><label for="mm" style="margin-top:0">Month</label><input class="in" type="month" id="mm" value="${U.month}"></div>
+    <div><label for="mr" style="margin-top:0">Report</label><select class="in" id="mr">${REPKEYS.map(k => `<option value="${k}"${U.rep === k ? ' selected' : ''}>${esc(T('m_' + k))}</option>`).join('')}</select></div></div>
+    ${reportActions()}</div>
+  ${reportHTML(R)}`;
+}
+
+/* ----- production report ----- */
+function viewProduction() {
+  const date = U.prodDate, M = prodModel(date), R = buildReport();
+  const inp = (attr, val, extra) => `<input class="in ${extra || ''}" ${attr} value="${esc(val)}">`;
+  const body = M.blocks.map(b => {
+    const rows = b.rows.map((r, i) => `<tr>${i === 0 ? `<td class="l itemname" rowspan="4">${esc(b.p.name)}</td>` : ''}<td class="l">${r.sh}</td><td></td>
+      <td>${cz(r.fg)}</td><td>${cz(r.fgk)}</td><td>${cz(r.h)}</td><td>${cz(r.r)}</td><td>${cz(r.grand)}</td><td></td><td></td>
+      <td class="l">${inp(`data-run="${b.p.code}|${r.sh}" aria-label="Run time ${r.sh}"`, r.run, 'rt')}</td></tr>`).join('');
+    const t = b.tot;
+    return rows + `<tr class="tot"><td class="l">Total</td><td>${inp(`data-open="${b.p.code}" inputmode="decimal" aria-label="Opening"`, fmt(t.open), b.ov ? 'ov' : '')}</td>
+      <td>${fmt(t.fg)}</td><td>${fmt(t.fgk)}</td><td>${fmt(t.h)}</td><td>${fmt(t.r)}</td><td>${fmt(t.grand)}</td><td>${fmt(t.del)}</td><td>${fmt(t.close)}</td><td></td></tr>`;
+  }).join('');
+  const g = M.grand;
+  const avail = S.products.filter(p => !M.blocks.some(b => b.p.code === p.code));
+  const mm = M.mpm;
+  const mpRows = mm.rows.map((r, i) => `<tr><td class="l">${inp(`data-mpn="${i}" aria-label="Designation"`, r.n, 'mpname')}</td>
+      <td>${inp(`data-mp="${i}|c1" inputmode="decimal" aria-label="${esc(r.n)} ${esc(mm.h[0])}"`, r.c1 || '')}</td>
+      <td>${inp(`data-mp="${i}|c2" inputmode="decimal" aria-label="${esc(r.n)} ${esc(mm.h[1])}"`, r.c2 || '')}</td>
+      <td class="noprint"><button class="btn sec sm" type="button" data-mpdel="${i}" aria-label="Remove row">✕</button></td></tr>`).join('');
+  return `
+  <div class="card noprint">
+    <label for="pd" style="margin-top:0">Date</label><input class="in" type="date" id="pd" value="${date}">
+    <details class="addbox"${avail.length && !M.blocks.length ? ' open' : ''}><summary class="addsum"><span class="addic">+</span><span class="addtx"><b>Add products to this report</b><small>${avail.length ? avail.length + ' not in the report yet. Pick some or add all, e.g. to enter opening stock.' : 'All products are already in this report.'}</small></span><span class="addch"></span></summary>
+      <div class="addbody">
+      <div class="btns" style="margin-top:0"><button class="btn" id="p-all" ${avail.length ? '' : 'disabled'}>\u2795 Add all products${avail.length ? ' (' + avail.length + ')' : ''}</button></div>
+      <div class="pbar"><span>Or choose products:</span><span class="pb2"><button class="btn sec sm" type="button" id="p-selall">Select all</button> <button class="btn sec sm" type="button" id="p-clear">Clear</button></span></div>
+      <div class="pchecks">${avail.map(p => `<label class="pchk"><input type="checkbox" class="p-chk" value="${p.code}"><span><b>${p.code}</b> ${esc(p.name)}</span></label>`).join('') || '<div class="muted" style="padding:10px">Nothing left to add.</div>'}</div>
+      <div class="btns"><button class="btn" id="p-add-btn" disabled>Add selected (0)</button>
+        ${(S.prodShow[date] || []).length ? '<button class="btn sec sm" type="button" id="p-reset">Remove added items</button>' : ''}</div>
+      </div>
+    </details>
+    <details class="howto"><summary>How this report works</summary><ul>
+      <li>Products appear on their own when they have Output, QA Hold, Reject, Delivery or an opening stock on this date.</li>
+      <li>Finish Goods CTN comes from the Output entries.</li>
+      <li>Closing = Opening + Finish Goods \u2212 QA Hold \u2212 Reject \u2212 Delivery.</li>
+      <li>Opening carries forward from the previous day. To correct it, type in the yellow Opening cell of a Total row (clear it to go back to automatic).</li></ul></details>
+    ${M.noKg.length ? `<div class="wn"><span class="wi">!</span><div><b>Kg missing for ${M.noKg.length} product${M.noKg.length === 1 ? '' : 's'}</b><small>${esc(M.noKg.join(', '))}</small><small>Set packets per carton and packet weight in Master \u203A FG Weight.</small></div></div>` : ''}
+    ${M.noShift ? `<div class="wn"><span class="wi">!</span><div><b>${M.noShift} item${M.noShift === 1 ? ' has' : 's have'} entries without a shift</b><small>They count in the Total row but not in the A/B/C rows. Edit those entries to set a shift.</small></div></div>` : ''}
+    ${reportActions()}</div>
+  <div class="rhead"><div class="co">${esc(R.company)}</div><div class="rt">${esc(R.title)}</div><div class="rs">${esc(R.sub)}</div></div>
+  ${M.blocks.length ? '' : '<div class="msg warn noprint">Nothing to show for this date yet. Add Output entries, or use "Add products to this report" above.</div>'}
+  <div class="tw"><table class="prod"><thead>
+    <tr><th rowspan="2" class="l">${esc(T('ph_item'))}</th><th rowspan="2" class="l">${esc(T('ph_shift'))}</th><th rowspan="2">${esc(T('ph_open'))}</th><th rowspan="2">${esc(T('ph_fgc'))}</th><th rowspan="2">${esc(T('ph_fgk'))}</th>
+      <th colspan="2" class="c">${esc(T('ph_wip'))}</th><th rowspan="2">${esc(T('ph_grand'))}</th><th rowspan="2">${esc(T('ph_del'))}</th><th rowspan="2">${esc(T('ph_close'))}</th><th rowspan="2" class="l">${esc(T('ph_run'))}</th></tr>
+    <tr><th>${esc(T('ph_hold'))}</th><th>${esc(T('ph_reject'))}</th></tr></thead>
+    <tbody>${body}
+    <tr class="tot grand"><td class="l" colspan="2">GRAND TOTAL</td><td>${fmt(g.open)}</td><td>${fmt(g.fg)}</td><td>${fmt(g.fgk)}</td><td>${fmt(g.h)}</td><td>${fmt(g.r)}</td><td>${fmt(g.grand)}</td><td>${fmt(g.del)}</td><td>${fmt(g.close)}</td><td></td></tr>
+    </tbody></table></div>
+  <div class="mpwrap"><h3 class="mph">${esc(T('mp_title'))}</h3>
+    <div class="tw" style="max-width:480px"><table class="mp"><thead><tr><th class="l">${esc(T('mp_desig'))}</th>
+      <th>${inp('data-mph="0" aria-label="Column 1 heading"', mm.h[0], 'mphead')}</th><th>${inp('data-mph="1" aria-label="Column 2 heading"', mm.h[1], 'mphead')}</th><th class="noprint"></th></tr></thead>
+    <tbody>${mpRows}<tr class="tot"><td class="l">${esc(T('mp_total'))}</td><td>${fmt(mpSum(mm, 'c1'))}</td><td>${fmt(mpSum(mm, 'c2'))}</td><td class="noprint"></td></tr></tbody></table></div>
+    <div class="btns noprint" style="margin-top:8px"><button class="btn sec sm" type="button" id="mp-addrow">+ Add row</button>${S.mpx[date] ? '<button class="btn sec sm" type="button" id="mp-reset">Reset this table to default</button>' : ''}</div>
+    <div class="muted noprint">Type over the column headings (e.g. Cake) and designations to change them for this date. Use ✕ to remove a row you do not need.</div></div>
+  ${signHTML(R)}`;
+}
+
+/* ----- master data ----- */
+function itemUsage(code) { return { e: S.receive.filter(x => x.code === code).length + S.ret.filter(x => x.code === code).length, r: S.recipes.filter(r => r.i === code).length }; }
+function prodUsage(code) { return { e: ['output', 'delivery', 'hold', 'reject'].reduce((a, k) => a + S[k].filter(x => x.code === code).length, 0), r: S.recipes.filter(r => r.p === code).length }; }
+function viewMaster() {
+  const subs = [['items', 'Items'], ['products', 'Products'], ['recipes', 'Recipes'], ['fg', 'FG Weight']];
+  const nav = `<div class="chips" style="margin-bottom:14px">${subs.map(([k, l]) => `<button class="chip" data-msub="${k}" aria-pressed="${U.msub === k}">${l}</button>`).join('')}</div>`;
+  return nav + ({ items: mItems, products: mProducts, recipes: mRecipes, fg: mFG }[U.msub])();
+}
+function mItems() {
+  const ed = U.editItem != null ? S.items.find(i => i.code === U.editItem) : null;
+  const nextCode = S.items.reduce((a, i) => Math.max(a, i.code), 0) + 1;
+  return `
+  <div class="card"><h2>${ed ? 'Edit item ' + ed.code : 'Add new item'}</h2>
+    <form id="item-form" autocomplete="off">
+      <div class="row stack"><div><label>Item Code</label><input class="in" id="mi-code" inputmode="numeric" value="${ed ? ed.code : nextCode}" ${ed ? 'disabled' : ''}></div>
+      <div><label>UoM</label><input class="in" id="mi-uom" value="${esc(ed ? ed.uom : 'kg')}"></div></div>
+      <label>Item Name</label><input class="in" id="mi-name" value="${esc(ed ? ed.name : '')}">
+      <label>Opening balance (stock before the first entry)</label><input class="in" id="mi-open" inputmode="decimal" value="${ed ? ed.open : 0}">
+      ${ed ? '<div class="muted" style="margin-top:8px">The code cannot be changed because entries and recipes refer to it. To use a different code, add a new item.</div>' : ''}
+      <div class="btns"><button class="btn" type="submit">${ed ? 'Save changes' : 'Add item'}</button>${ed ? '<button class="btn sec" type="button" id="cancel-item">Cancel</button>' : ''}</div>
+    </form></div>
+  <div class="card list"><h2>Items <span class="pill">${S.items.length}</span></h2>
+    <input type="search" id="m-filter" placeholder="Search items…" style="margin-bottom:6px">
+    <div id="m-list">${itemList('')}</div></div>`;
+}
+function itemList(f) {
+  f = f.trim().toLowerCase();
+  return S.items.filter(i => !f || String(i.code).includes(f) || i.name.toLowerCase().includes(f)).map(i => `
+    <div class="it"><div><div class="t">${i.code} · ${esc(i.name)}</div><div class="muted">${esc(i.uom)} · Opening ${fmt(i.open)}</div></div>
+    <div style="display:flex;gap:6px"><button class="btn sec sm" data-iedit="${i.code}">Edit</button><button class="btn danger sm" data-idel="${i.code}">Delete</button></div></div>`).join('') || '<div class="muted">No matches.</div>';
+}
+function mProducts() {
+  const ed = U.editProd != null ? S.products.find(p => p.code === U.editProd) : null;
+  const nextCode = S.products.reduce((a, p) => Math.max(a, p.code), 0) + 1;
+  return `
+  <div class="card"><h2>${ed ? 'Edit product ' + ed.code : 'Add new product'}</h2>
+    <form id="prod-form" autocomplete="off">
+      <label>Product Code</label><input class="in" id="mp-code" inputmode="numeric" value="${ed ? ed.code : nextCode}" ${ed ? 'disabled' : ''}>
+      <label>Product Name</label><input class="in" id="mp-name" value="${esc(ed ? ed.name : '')}">
+      ${ed ? '<div class="muted" style="margin-top:8px">The code cannot be changed because entries and recipes refer to it.</div>' : '<div class="muted" style="margin-top:8px">After adding a product, use the Recipes tab (materials per carton) and the FG Weight tab (carton weight).</div>'}
+      <div class="btns"><button class="btn" type="submit">${ed ? 'Save changes' : 'Add product'}</button>${ed ? '<button class="btn sec" type="button" id="cancel-prod">Cancel</button>' : ''}</div>
+    </form></div>
+  <div class="card list"><h2>Products <span class="pill">${S.products.length}</span></h2>
+    ${S.products.map(p => { const u = prodUsage(p.code); return `
+    <div class="it"><div><div class="t">${p.code} · ${esc(p.name)}</div><div class="muted">${u.r} recipe line${u.r === 1 ? '' : 's'}</div></div>
+    <div style="display:flex;gap:6px"><button class="btn sec sm" data-pedit="${p.code}">Edit</button><button class="btn danger sm" data-pdel="${p.code}">Delete</button></div></div>`; }).join('')}</div>`;
+}
+function mRecipes() {
+  const byProd = {};
+  S.recipes.forEach((r, idx) => { (byProd[r.p] = byProd[r.p] || []).push({ ...r, idx }); });
+  return `
+  <div class="card"><h2>Recipes (material needed for 1 carton)</h2>
+    ${S.products.map(p => `<h3 style="font-size:14px;margin:14px 0 6px">${p.code} · ${esc(p.name)}</h3>
+      ${(byProd[p.code] || []).length ? `<div class="tw" style="max-height:none"><table><tbody>${byProd[p.code].map(r => `<tr><td class="l" style="white-space:normal">${r.i} · ${esc(itemName(r.i))}</td><td><input class="in" inputmode="decimal" data-rq="${r.idx}" value="${r.q}"></td><td><button class="btn danger sm" data-rdel="${r.idx}">✕</button></td></tr>`).join('')}</tbody></table></div>` : '<div class="muted">No recipe lines</div>'}`).join('')}
+    <h3 style="font-size:14px;margin:18px 0 6px">Add recipe line</h3>
+    <form id="radd"><div class="row stack"><div><label>Product</label><select class="in" id="ra-p">${optionsFor('prod', '', null)}</select></div>
+    <div><label>Item</label><select class="in" id="ra-i">${optionsFor('item', '', null)}</select></div></div>
+    <label>Quantity per 1 carton</label><input class="in" id="ra-q" inputmode="decimal" placeholder="0.000">
+    <div class="btns"><button class="btn" type="submit">Add line</button></div></form></div>`;
+}
+function mFG() {
+  return `
+  <div class="card"><h2>Finish Goods Weight</h2>
+    <div class="muted" style="margin-bottom:10px">For each product enter how many packets are in one carton and the actual weight of one packet in grams. Carton weight (kg) = packets per carton × packet weight ÷ 1000. The Production Report multiplies it by the carton count to get Finish Goods KG.</div>
+    <div class="tw" style="max-height:none"><table><thead><tr><th class="l">Product</th><th>Packets / carton</th><th>Packet weight (g)</th><th>Kg / carton</th></tr></thead><tbody>
+    ${S.products.map(p => { const f = S.fg[p.code] || {}; return `<tr><td class="l" style="white-space:normal">${p.code} · ${esc(p.name)}</td>
+      <td><input class="in" inputmode="decimal" data-fgp="${p.code}" value="${f.pcs || ''}" placeholder="0"></td>
+      <td><input class="in" inputmode="decimal" data-fgg="${p.code}" value="${f.g || ''}" placeholder="0"></td>
+      <td id="fgkg-${p.code}"><b>${kgPerCtn(p.code) ? fmt(kgPerCtn(p.code)) : '—'}</b></td></tr>`; }).join('')}
+    </tbody></table></div></div>`;
+}
+
+/* ----- settings (top-level tab) ----- */
+function viewSettings() {
+  return `
+  <form id="set-form" autocomplete="off">
+  ${window.AndroidPM && AndroidPM.guardOn ? `<div class="card"><h2>Security</h2><div class="muted" style="margin-bottom:8px">Fingerprint (or phone PIN) is asked before the Master and Settings tabs open and before every delete. Same lock as the RM Stock app.</div><button class="btn sec" id="guard-toggle">Protection: ${AndroidPM.guardOn() ? 'ON \u2014 tap to turn off' : 'OFF \u2014 tap to turn on'}</button></div>` : ''}
+  <div class="card"><h2>Company and report details</h2>
+    <label>Company name (report heading)</label><input class="in" id="s-company" value="${esc(S.settings.company)}">
+    <label>Prepared by (name printed under the first signature)</label><input class="in" id="s-preparedBy" value="${esc(S.settings.preparedBy)}"></div>
+  ${LABEL_GROUPS.map(([g, fields]) => `<div class="card"><h2>${esc(g)}</h2><div class="row stack">${fields.map(([k, l]) => `<div><label>${esc(l)}</label><input class="in" data-lab="${k}" value="${esc(T(k))}"></div>`).join('')}</div></div>`).join('')}
+  <div class="card"><h2>Manpower designations</h2><div class="muted" style="margin-bottom:6px">One designation per line. These are the rows of the Manpower table in the Production Report.</div>
+    <textarea class="in" data-lab="mp_rows" rows="9">${esc(T('mp_rows'))}</textarea></div>
+  <div class="btns" style="margin-bottom:14px"><button class="btn" type="submit">Save settings</button><button class="btn sec" type="button" id="set-reset">Reset names to default</button></div></form>`;
+}
+
+function viewBackup() {
+  const last = S.lastBackup ? new Date(S.lastBackup).toLocaleString() : 'never';
+  return `
+  <div class="card"><h2>Backup</h2>
+    <div class="msg warn">Your data is stored in this phone's browser only. Clearing browser data or changing phones will erase it. Download a backup file regularly.</div>
+    <div class="muted">Last backup: ${esc(last)}</div>
+    <div class="btns"><button class="btn" id="bk-export">Download backup (JSON)</button>
+    <label class="btn sec" style="margin:0;display:inline-flex;align-items:center;color:var(--ink)">Restore from backup<input type="file" id="bk-import" accept=".json,application/json" hidden></label></div></div>
+  <div class="card"><h2>Export entries to Excel (CSV)</h2>
+    <div class="btns">${LISTS.map(k => `<button class="btn sec sm" data-csv="${k}">${esc(tl(k))}</button>`).join('')}</div></div>
+  <div class="card"><h2>Delete one month</h2><div class="muted">Removes every entry, typed opening, run time and manpower table of the chosen month. Other months, items, products and recipes are kept. Download a backup first.</div>
+    <label for="wipe-month">Month</label><input class="in" type="month" id="wipe-month" value="${U.month}">
+    <div class="btns"><button class="btn danger" id="wipe-m">Delete this month</button></div></div>
+  <div class="card"><h2>Delete all entries</h2><div class="muted">Items, products, recipes, weights and settings are kept. Only the entries (and typed openings, run times and manpower) are removed.</div>
+    <div class="btns"><button class="btn danger" id="wipe">Delete all entries</button></div></div>`;
+}
+
+/* ---------- events ---------- */
+function printReport() {
+  const R = buildReport(), old = document.title;
+  if (window.AndroidPM && AndroidPM.print) { AndroidPM.print(R.file); return; }
+  document.title = R.file;
+  const back = () => { document.title = old; window.removeEventListener('afterprint', back); };
+  window.addEventListener('afterprint', back);
+  window.print();
+  setTimeout(back, 4000);
+}
+/* fingerprint lock (inside the Android app): Settings, Master tab and every delete ask first */
+let _unlockedUntil = 0;
+function gate(why, fn, fresh) {
+  const on = window.AndroidPM && AndroidPM.authenticate && AndroidPM.guardOn && AndroidPM.guardOn();
+  if (!on || (!fresh && Date.now() < _unlockedUntil)) { fn(); return; }
+  window.__authOk = () => { _unlockedUntil = Date.now() + 180000; fn(); };
+  AndroidPM.authenticate(why, !!fresh);
+}
+document.addEventListener('click', ev => {
+  const b = ev.target.closest('button'); if (!b) return;
+  const d = b.dataset, fresh = !!(d.del || d.idel || d.pdel || d.rdel || b.id === 'wipe' || b.id === 'wipe-m');
+  if (fresh || d.tab === 'master' || d.tab === 'settings') { gate(fresh ? 'Delete' : 'Unlock ' + d.tab, () => handleClick(ev), fresh); return; }
+  handleClick(ev);
+});
+function handleClick(ev) {
+  const b = ev.target.closest('button'); if (!b) return;
+  if (b.dataset.tab) { U.tab = b.dataset.tab; U.editId = null; U.editItem = null; U.editProd = null; render(); window.scrollTo(0, 0); }
+  else if (b.dataset.type) { U.type = b.dataset.type; U.editId = null; render(); }
+  else if (b.dataset.daily) { U.daily = b.dataset.daily; render(); }
+  else if (b.dataset.msub) { U.msub = b.dataset.msub; U.editItem = null; U.editProd = null; render(); }
+  else if (b.dataset.edit) { U.editId = +b.dataset.edit; render(); window.scrollTo(0, 0); }
+  else if (b.id === 'cancel-edit') { U.editId = null; render(); }
+  else if (b.dataset.del) {
+    const id = +b.dataset.del, e = S[U.type].find(x => x.id === id);
+    if (e && confirm('Delete ' + fmtDate(e.date) + ' · ' + e.code + ' · ' + fmt(e.qty) + '?')) { S[U.type] = S[U.type].filter(x => x.id !== id); save(); render(); }
+  }
+  else if (b.dataset.iedit) { U.editItem = +b.dataset.iedit; render(); window.scrollTo(0, 0); }
+  else if (b.id === 'cancel-item') { U.editItem = null; render(); }
+  else if (b.dataset.idel) {
+    const c = +b.dataset.idel, u = itemUsage(c);
+    if (u.e || u.r) { U.msg = { t: 'err', s: `Cannot delete item ${c}: it is used in ${u.e} receive/return entr${u.e === 1 ? 'y' : 'ies'} and ${u.r} recipe line${u.r === 1 ? '' : 's'}. Remove those first.` }; render(); window.scrollTo(0, 0); }
+    else if (confirm('Delete item ' + c + ' · ' + itemName(c) + '?')) { S.items = S.items.filter(i => i.code !== c); save(); U.msg = { t: 'ok', s: 'Item deleted.' }; render(); }
+  }
+  else if (b.dataset.pedit) { U.editProd = +b.dataset.pedit; render(); window.scrollTo(0, 0); }
+  else if (b.id === 'cancel-prod') { U.editProd = null; render(); }
+  else if (b.dataset.pdel) {
+    const c = +b.dataset.pdel, u = prodUsage(c);
+    if (u.e || u.r) { U.msg = { t: 'err', s: `Cannot delete product ${c}: it is used in ${u.e} entr${u.e === 1 ? 'y' : 'ies'} and ${u.r} recipe line${u.r === 1 ? '' : 's'}. Remove those first.` }; render(); window.scrollTo(0, 0); }
+    else if (confirm('Delete product ' + c + ' · ' + prodName(c) + '?')) { S.products = S.products.filter(p => p.code !== c); delete S.fg[c]; save(); U.msg = { t: 'ok', s: 'Product deleted.' }; render(); }
+  }
+  else if (b.dataset.rdel) {
+    const r = S.recipes[+b.dataset.rdel];
+    if (r && confirm('Delete this recipe line? Product ' + r.p + ' → item ' + r.i)) { S.recipes.splice(+b.dataset.rdel, 1); save(); render(); }
+  }
+  else if (b.id === 'p-add-btn' || b.id === 'p-all') {
+    const codes = b.id === 'p-all' ? [...document.querySelectorAll('.p-chk')].map(x => +x.value) : [...document.querySelectorAll('.p-chk:checked')].map(x => +x.value);
+    if (!codes.length) return;
+    const cur = S.prodShow[U.prodDate] = S.prodShow[U.prodDate] || [];
+    codes.forEach(c => { if (!cur.includes(c)) cur.push(c); });
+    save(); U.msg = { t: 'ok', s: codes.length + ' item' + (codes.length === 1 ? '' : 's') + ' added to this report.' }; render();
+  }
+  else if (b.id === 'p-selall' || b.id === 'p-clear') {
+    document.querySelectorAll('.p-chk').forEach(x => x.checked = b.id === 'p-selall'); updPCount();
+  }
+  else if (b.dataset.mpdel != null) { const m = editMP(U.prodDate); m.rows.splice(+b.dataset.mpdel, 1); save(); render(); }
+  else if (b.id === 'mp-addrow') { const m = editMP(U.prodDate); m.rows.push({ n: '', c1: '', c2: '' }); save(); render(); }
+  else if (b.id === 'mp-reset') { if (confirm('Reset the manpower table of this date to the default rows and headings? Typed numbers for this date will be cleared.')) { delete S.mpx[U.prodDate]; delete S.manpower[U.prodDate]; save(); render(); } }
+  else if (b.id === 'p-reset') { delete S.prodShow[U.prodDate]; save(); render(); }
+  else if (b.id === 'do-print') printReport();
+  else if (b.id === 'do-pdf') { const R = buildReport(); download(R.file + '.pdf', makePDF(R), 'application/pdf'); }
+  else if (b.id === 'do-csv') { const R = buildReport(); download(R.file + '.csv', reportCSV(R)); }
+  else if (b.id === 'set-reset') {
+    if (confirm('Reset all tab, form, report and column names to their defaults? Company name and Prepared by are kept.')) { S.labels = {}; save(); U.msg = { t: 'ok', s: 'Names reset to default.' }; render(); }
+  }
+  else if (b.id === 'guard-toggle') { window.__authOk = () => render(); AndroidPM.toggleGuard(); }
+  else if (b.id === 'bk-export') { S.lastBackup = Date.now(); save(); download('daily-pm-backup-' + todayISO() + '.json', JSON.stringify(S), 'application/json'); render(); }
+  else if (b.dataset.csv) {
+    const t = b.dataset.csv, ty = TY[t];
+    download(t + '-' + todayISO() + '.csv', csv([['Date', ty.kind === 'item' ? 'Item Code' : 'Product Code', 'Name', 'Quantity', ...(ty.shift ? ['Shift'] : []), ...(ty.voucher ? ['Voucher'] : []), 'Note'],
+      ...S[t].map(e => [e.date, e.code, ty.kind === 'item' ? itemName(e.code) : prodName(e.code), e.qty, ...(ty.shift ? [e.shift || ''] : []), ...(ty.voucher ? [e.voucher || ''] : []), e.note || ''])]));
+  }
+  else if (b.id === 'wipe-m') {
+    const m = (document.getElementById('wipe-month') || {}).value || '';
+    if (!/^\d{4}-\d{2}$/.test(m)) { U.msg = { t: 'err', s: 'Pick a month first.' }; render(); return; }
+    if (confirm('Delete every entry of ' + m + '? This cannot be undone.') && confirm('Are you sure? Have you downloaded a backup?')) {
+      let n = 0;
+      LISTS.forEach(k => { const before = S[k].length; S[k] = S[k].filter(e => !String(e.date).startsWith(m)); n += before - S[k].length; });
+      ['openOv', 'runtime'].forEach(k => { for (const key in S[k]) if (key.startsWith(m)) delete S[k][key]; });
+      ['manpower', 'mpx'].forEach(k => { for (const key in S[k]) if (key.startsWith(m)) delete S[k][key]; });
+      save(); U.msg = { t: 'ok', s: n + ' entries of ' + m + ' deleted.' }; render();
+    }
+  }
+  else if (b.id === 'wipe') {
+    if (confirm('All entries will be deleted. Continue?') && confirm('Are you sure? Have you downloaded a backup?')) {
+      LISTS.forEach(k => S[k] = []); S.openOv = {}; S.runtime = {}; S.manpower = {}; S.mpx = {}; S.prodShow = {}; save(); U.msg = { t: 'ok', s: 'All entries deleted.' }; render();
+    }
+  }
+}
+document.addEventListener('input', ev => {
+  const t = ev.target;
+  if (t.id === 'f-filter') fillOptions();
+  else if (t.id === 'm-filter') $('#m-list').innerHTML = itemList(t.value);
+});
+function updPCount() {
+  const n = document.querySelectorAll('.p-chk:checked').length, b = $('#p-add-btn');
+  if (b) { b.textContent = 'Add selected (' + n + ')'; b.disabled = !n; }
+}
+document.addEventListener('change', ev => {
+  const t = ev.target, d = t.dataset || {};
+  if (t.classList && t.classList.contains('p-chk')) updPCount();
+  else if (t.id === 'f-code') showName();
+  else if (t.id === 'f-date') U.date = t.value;
+  else if (t.id === 'f-shift') U.shift = t.value;
+  else if (t.id === 'sd') { U.stockDate = t.value || todayISO(); render(); }
+  else if (t.id === 'pd') { U.prodDate = t.value || todayISO(); render(); }
+  else if (t.id === 'mm') { U.month = t.value || todayISO().slice(0, 7); render(); }
+  else if (t.id === 'mr') { U.rep = t.value; render(); }
+  else if (d.rq != null) {
+    const v = num(t.value), r = S.recipes[+d.rq];
+    if (r && isFinite(v) && v >= 0) { r.q = v; save(); } else if (r) t.value = r.q;
+  }
+  else if (d.fgp != null || d.fgg != null) {
+    const c = +(d.fgp ?? d.fgg), key = d.fgp != null ? 'pcs' : 'g', v = num(t.value);
+    const f = S.fg[c] = S.fg[c] || { pcs: 0, g: 0 };
+    f[key] = isFinite(v) && v > 0 ? v : 0; if (!f[key]) t.value = '';
+    save(); const cell = $('#fgkg-' + c); if (cell) cell.innerHTML = '<b>' + (kgPerCtn(c) ? fmt(kgPerCtn(c)) : '—') + '</b>';
+  }
+  else if (d.open != null) {
+    const c = +d.open, k = U.prodDate + '|' + c;
+    if (String(t.value).trim() === '') delete S.openOv[k];
+    else { const v = num(t.value); if (isFinite(v)) S.openOv[k] = v; }
+    save(); render();
+  }
+  else if (d.run != null) { const [c, sh] = d.run.split('|'); const k = U.prodDate + '|' + c + '|' + sh; if (t.value.trim()) S.runtime[k] = t.value.trim(); else delete S.runtime[k]; save(); }
+  else if (d.mp != null) {
+    const [i, col] = d.mp.split('|'); const m = editMP(U.prodDate); if (m.rows[+i]) m.rows[+i][col] = t.value.trim(); save(); updMPTot();
+  }
+  else if (d.mph != null) { const m = editMP(U.prodDate); m.h[+d.mph] = t.value.trim(); save(); }
+  else if (d.mpn != null) { const m = editMP(U.prodDate); if (m.rows[+d.mpn]) m.rows[+d.mpn].n = t.value.trim(); save(); }
+  else if (t.id === 'bk-import') {
+    const f = t.files[0]; if (!f) return;
+    const rd = new FileReader();
+    rd.onload = () => {
+      try {
+        const x = JSON.parse(rd.result);
+        if (!x || !['items', 'products', 'recipes', 'receive', 'ret', 'output', 'delivery'].every(k => Array.isArray(x[k]))) throw new Error('bad');
+        if (!confirm('All current data will be replaced by this backup. Continue?')) return;
+        S = migrate(x); save(); U.msg = { t: 'ok', s: 'Data restored from backup.' }; render();
+      } catch (e) { U.msg = { t: 'err', s: 'This is not a valid backup file.' }; render(); }
+    };
+    rd.readAsText(f);
+  }
+});
+document.addEventListener('submit', ev => {
+  ev.preventDefault();
+  const id = ev.target.id;
+  if (id === 'form') {
+    const t = TY[U.type], date = $('#f-date').value, code = +$('#f-code').value, qty = num($('#f-qty').value);
+    const errs = [];
+    if (!date) errs.push('Enter a date');
+    if (!code) errs.push('Select a code');
+    if (!(qty > 0) || !isFinite(qty)) errs.push('Quantity must be greater than zero');
+    if (errs.length) { $('#form-msg').innerHTML = '<div class="msg err" style="margin-top:12px">' + esc(errs.join(' · ')) + '</div>'; return; }
+    const rec = { date, code, qty, voucher: t.voucher ? $('#f-vo').value.trim() : '', note: $('#f-note').value.trim() };
+    if (t.shift) rec.shift = $('#f-shift').value;
+    if (U.editId) { const e = S[U.type].find(x => x.id === U.editId); if (e) Object.assign(e, rec); U.editId = null; }
+    else S[U.type].push({ id: S.nextId++, ...rec });
+    U.date = date; if (t.shift && rec.shift) U.shift = rec.shift; save();
+    U.msg = { t: 'ok', s: tl(U.type) + ' saved: ' + fmtDate(date) + ' · ' + code + ' · ' + fmt(qty) + (t.shift ? ' · Shift ' + (rec.shift || '—') : '') };
+    render();
+  } else if (id === 'item-form') {
+    const editing = U.editItem != null, code = editing ? U.editItem : parseInt($('#mi-code').value, 10);
+    const name = $('#mi-name').value.trim(), uom = $('#mi-uom').value.trim() || 'kg', open = num($('#mi-open').value || '0');
+    const errs = [];
+    if (!(code > 0)) errs.push('Item code must be a positive whole number');
+    if (!editing && S.items.some(i => i.code === code)) errs.push('Item code ' + code + ' already exists');
+    if (!name) errs.push('Enter the item name');
+    if (!isFinite(open)) errs.push('Opening balance must be a number');
+    if (errs.length) { U.msg = { t: 'err', s: errs.join(' · ') }; render(); return; }
+    if (editing) Object.assign(S.items.find(i => i.code === code), { name, uom, open });
+    else S.items.push({ code, name, uom, open });
+    S.items.sort((a, b) => a.code - b.code); U.editItem = null; save();
+    U.msg = { t: 'ok', s: (editing ? 'Item updated: ' : 'Item added: ') + code + ' · ' + name }; render();
+  } else if (id === 'prod-form') {
+    const editing = U.editProd != null, code = editing ? U.editProd : parseInt($('#mp-code').value, 10), name = $('#mp-name').value.trim();
+    const errs = [];
+    if (!(code > 0)) errs.push('Product code must be a positive whole number');
+    if (!editing && S.products.some(p => p.code === code)) errs.push('Product code ' + code + ' already exists');
+    if (!name) errs.push('Enter the product name');
+    if (errs.length) { U.msg = { t: 'err', s: errs.join(' · ') }; render(); return; }
+    if (editing) S.products.find(p => p.code === code).name = name; else S.products.push({ code, name });
+    S.products.sort((a, b) => a.code - b.code); U.editProd = null; save();
+    U.msg = { t: 'ok', s: (editing ? 'Product updated: ' : 'Product added: ') + code + ' · ' + name }; render();
+  } else if (id === 'radd') {
+    const p = +$('#ra-p').value, i = +$('#ra-i').value, q = num($('#ra-q').value);
+    if (!p || !i || !(q >= 0) || !isFinite(q)) { U.msg = { t: 'err', s: 'Select a product, an item and enter a valid quantity' }; render(); return; }
+    S.recipes.push({ p, i, q }); S.recipes.sort((a, b) => a.p - b.p); save(); U.msg = { t: 'ok', s: 'Recipe line added' }; render();
+  } else if (id === 'set-form') {
+    S.settings.company = $('#s-company').value.trim() || DEFAULT_SETTINGS.company; S.settings.preparedBy = $('#s-preparedBy').value.trim();
+    document.querySelectorAll('[data-lab]').forEach(el => { const k = el.dataset.lab, v = el.value.trim(); if (v && v !== DL[k]) S.labels[k] = v; else delete S.labels[k]; });
+    save(); U.msg = { t: 'ok', s: 'Settings saved' }; render();
+  }
+});
+
+render();
+
+</script>
+</body>
+</html>

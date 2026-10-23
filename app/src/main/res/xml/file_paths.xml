@@ -1,0 +1,1 @@
+<paths xmlns:android="http://schemas.android.com/apk/res/android"><cache-path name="cache" path="."/><files-path name="reports" path="reports/"/><files-path name="vouchers" path="vouchers/"/><external-files-path name="backups" path="backups/"/><files-path name="backups_int" path="backups/"/></paths>
