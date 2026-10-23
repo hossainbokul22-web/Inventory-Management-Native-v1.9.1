@@ -1720,7 +1720,7 @@ for(int i=0;i<content.getChildCount();i++){
             card.addView(Ui.text(this,code+" · "+name,16,Ui.NAVY_TEXT,true));
             Double chain=1.0; boolean chainOk=true;
             for(int si=0;si<STAGES.length;si++){
-                final String stage=STAGES[si];
+                final String stage=STAGES[si]; final int siF=si;
                 JSONObject y=db.one("SELECT actual,standard,formula,enabled FROM yield_stages WHERE product_code=? AND stage=?",new String[]{String.valueOf(code),stage});
                 if(y==null){
                     // fallback yield_defs for mixing only
@@ -1771,7 +1771,7 @@ for(int i=0;i<content.getChildCount();i++){
                         h.put("formula",fo);h.put("result",check);h.put("note","");h.put("user",user());
                         try{db.insert("yield_history",h);}catch(Exception ignored){}
                         db.audit(user(),role(),"yield_save",name+"/"+stage+"="+fmt(check)+"%");
-                        toast(STAGE_LBL[si]+" saved · "+fmt(check)+"%");
+                        toast(STAGE_LBL[siF]+" saved · "+fmt(check)+"%");
                         showYieldSheet();
                     }catch(Exception e){error(e);}
                 });
